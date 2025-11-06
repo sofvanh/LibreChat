@@ -20,7 +20,7 @@ import ShareRoute from './ShareRoute';
 import ChatRoute from './ChatRoute';
 import Search from './Search';
 import Root from './Root';
-import { Projects } from '~/components/Projects';
+import { Workspaces } from '~/components/Workspaces';
 
 const AuthLayout = () => (
   <AuthContextProvider>
@@ -113,8 +113,8 @@ export const router = createBrowserRouter(
               element: <Search />,
             },
             {
-              path: 'projects',
-              element: <Projects />,
+              path: 'workspaces',
+              element: <Workspaces />,
             },
             {
               path: 'agents',

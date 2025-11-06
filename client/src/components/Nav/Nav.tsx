@@ -21,7 +21,7 @@ import store from '~/store';
 const BookmarkNav = lazy(() => import('./Bookmarks/BookmarkNav'));
 const AccountSettings = lazy(() => import('./AccountSettings'));
 const AgentMarketplaceButton = lazy(() => import('./AgentMarketplaceButton'));
-const ProjectsButton = lazy(() => import('./ProjectsButton'));
+const WorkspacesButton = lazy(() => import('./WorkspacesButton'));
 
 const NAV_WIDTH_DESKTOP = '260px';
 const NAV_WIDTH_MOBILE = '320px';
@@ -164,7 +164,7 @@ const Nav = memo(
           </Suspense>
           <div className="mt-1.5" />
           <Suspense fallback={null}>
-            <ProjectsButton isSmallScreen={isSmallScreen} toggleNav={toggleNavVisible} />
+            <WorkspacesButton isSmallScreen={isSmallScreen} toggleNav={toggleNavVisible} />
           </Suspense>
           {hasAccessToBookmarks && (
             <>

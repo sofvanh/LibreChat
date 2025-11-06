@@ -1,13 +1,18 @@
 import { FolderKanban } from 'lucide-react';
 
-interface ProjectCardProps {
+interface WorkspaceCardProps {
   title: string;
   description: string;
   updatedAt: string;
   onClick?: () => void;
 }
 
-export default function ProjectCard({ title, description, updatedAt, onClick }: ProjectCardProps) {
+export default function WorkspaceCard({
+  title,
+  description,
+  updatedAt,
+  onClick,
+}: WorkspaceCardProps) {
   return (
     <button
       onClick={onClick}
@@ -26,4 +31,3 @@ export default function ProjectCard({ title, description, updatedAt, onClick }: 
     </button>
   );
 }
-

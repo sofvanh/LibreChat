@@ -5,22 +5,22 @@ import { Button, useMediaQuery } from '@librechat/client';
 import { useLocalize } from '~/hooks';
 import type { ContextType } from '~/common';
 import { OpenSidebar } from '~/components/Chat/Menus';
-import ProjectCard from './ProjectCard';
+import WorkspaceCard from './WorkspaceCard';
 
-// Placeholder project data
-const PLACEHOLDER_PROJECTS = [
+// Placeholder workspace data
+const PLACEHOLDER_WORKSPACES = [
   {
     id: '1',
     title: 'Personal Assistant',
     description:
-      'A project for managing daily tasks, scheduling, and personal productivity. Includes custom instructions and file attachments.',
+      'A workspace for managing daily tasks, scheduling, and personal productivity. Includes custom instructions and file attachments.',
     updatedAt: 'Updated 2 days ago',
   },
   {
     id: '2',
     title: 'Code Review Helper',
     description:
-      'Technical project focused on code reviews, best practices, and architecture discussions.',
+      'Technical workspace focused on code reviews, best practices, and architecture discussions.',
     updatedAt: 'Updated 1 week ago',
   },
   {
@@ -32,19 +32,19 @@ const PLACEHOLDER_PROJECTS = [
   },
 ];
 
-export default function Projects() {
+export default function Workspaces() {
   const localize = useLocalize();
   const isSmallScreen = useMediaQuery('(max-width: 768px)');
   const { navVisible, setNavVisible } = useOutletContext<ContextType>();
 
-  const handleProjectClick = useCallback((projectId: string) => {
-    // TODO: Navigate to project detail or start conversation with project context
-    console.log('Project clicked:', projectId);
+  const handleWorkspaceClick = useCallback((workspaceId: string) => {
+    // TODO: Navigate to workspace detail or start conversation with workspace context
+    console.log('Workspace clicked:', workspaceId);
   }, []);
 
-  const handleNewProject = useCallback(() => {
-    // TODO: Open new project dialog
-    console.log('New project clicked');
+  const handleNewWorkspace = useCallback(() => {
+    // TODO: Open new workspace dialog
+    console.log('New workspace clicked');
   }, []);
 
   return (
@@ -71,30 +71,30 @@ export default function Projects() {
                   !isSmallScreen ? 'transition-all duration-200 ease-in-out' : ''
                 } ${!navVisible ? 'translate-x-0' : 'translate-x-[-50px]'}`}
               >
-                {localize('com_ui_projects')}
+                {localize('com_ui_workspaces')}
               </h1>
             </div>
             <Button
-              onClick={handleNewProject}
+              onClick={handleNewWorkspace}
               className="flex items-center gap-2"
-              data-testid="new-project-button"
+              data-testid="new-workspace-button"
             >
               <Plus className="size-4" />
-              {!isSmallScreen && <span>{localize('com_ui_new_project')}</span>}
+              {!isSmallScreen && <span>{localize('com_ui_new_workspace')}</span>}
             </Button>
           </div>
         </div>
 
-        {/* Projects Grid */}
+        {/* Workspaces Grid */}
         <div className="flex-1 px-6 py-8">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {PLACEHOLDER_PROJECTS.map((project) => (
-              <ProjectCard
-                key={project.id}
-                title={project.title}
-                description={project.description}
-                updatedAt={project.updatedAt}
-                onClick={() => handleProjectClick(project.id)}
+            {PLACEHOLDER_WORKSPACES.map((workspace) => (
+              <WorkspaceCard
+                key={workspace.id}
+                title={workspace.title}
+                description={workspace.description}
+                updatedAt={workspace.updatedAt}
+                onClick={() => handleWorkspaceClick(workspace.id)}
               />
             ))}
           </div>

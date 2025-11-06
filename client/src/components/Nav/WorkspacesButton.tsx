@@ -4,18 +4,18 @@ import { FolderKanban } from 'lucide-react';
 import { Button, TooltipAnchor } from '@librechat/client';
 import { useLocalize, AuthContext } from '~/hooks';
 
-interface ProjectsButtonProps {
+interface WorkspacesButtonProps {
   isSmallScreen: boolean;
   toggleNav: () => void;
 }
 
-export default function ProjectsButton({ isSmallScreen, toggleNav }: ProjectsButtonProps) {
+export default function WorkspacesButton({ isSmallScreen, toggleNav }: WorkspacesButtonProps) {
   const navigate = useNavigate();
   const localize = useLocalize();
   const authContext = useContext(AuthContext);
 
-  const handleProjects = useCallback(() => {
-    navigate('/projects');
+  const handleWorkspaces = useCallback(() => {
+    navigate('/workspaces');
     if (isSmallScreen) {
       toggleNav();
     }
@@ -32,14 +32,14 @@ export default function ProjectsButton({ isSmallScreen, toggleNav }: ProjectsBut
 
   return (
     <TooltipAnchor
-      description={localize('com_ui_projects')}
+      description={localize('com_ui_workspaces')}
       render={
         <Button
           variant="outline"
-          data-testid="nav-projects-button"
-          aria-label={localize('com_ui_projects')}
+          data-testid="nav-workspaces-button"
+          aria-label={localize('com_ui_workspaces')}
           className="rounded-full border-none bg-transparent p-2 hover:bg-surface-hover md:rounded-xl"
-          onClick={handleProjects}
+          onClick={handleWorkspaces}
         >
           <FolderKanban className="icon-lg text-text-primary" />
         </Button>
@@ -47,3 +47,4 @@ export default function ProjectsButton({ isSmallScreen, toggleNav }: ProjectsBut
     />
   );
 }
+
