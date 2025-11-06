@@ -1,9 +1,10 @@
 import { useCallback } from 'react';
-import { useNavigate, useOutletContext } from 'react-router-dom';
+import { useOutletContext } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { Button, useMediaQuery } from '@librechat/client';
 import { useLocalize } from '~/hooks';
 import type { ContextType } from '~/common';
+import { OpenSidebar } from '~/components/Chat/Menus';
 import ProjectCard from './ProjectCard';
 
 // Placeholder project data
@@ -32,10 +33,9 @@ const PLACEHOLDER_PROJECTS = [
 ];
 
 export default function Projects() {
-  const navigate = useNavigate();
   const localize = useLocalize();
   const isSmallScreen = useMediaQuery('(max-width: 768px)');
-  const { navVisible } = useOutletContext<ContextType>();
+  const { navVisible, setNavVisible } = useOutletContext<ContextType>();
 
   const handleProjectClick = useCallback((projectId: string) => {
     // TODO: Navigate to project detail or start conversation with project context
@@ -52,10 +52,28 @@ export default function Projects() {
       <div className="flex h-full w-full flex-col overflow-y-auto">
         {/* Header */}
         <div className="sticky top-0 z-10 border-b border-border-light bg-surface-primary px-6 py-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-semibold text-text-primary">
-              {localize('com_ui_projects')}
-            </h1>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              {/* Sidebar toggle - shows when sidebar is hidden */}
+              <div
+                className={`flex items-center ${
+                  !isSmallScreen ? 'transition-all duration-200 ease-in-out' : ''
+                } ${
+                  !navVisible
+                    ? 'translate-x-0 opacity-100'
+                    : 'pointer-events-none translate-x-[-50px] opacity-0'
+                }`}
+              >
+                <OpenSidebar setNavVisible={setNavVisible} className="max-md:hidden" />
+              </div>
+              <h1
+                className={`text-2xl font-semibold text-text-primary ${
+                  !isSmallScreen ? 'transition-all duration-200 ease-in-out' : ''
+                } ${!navVisible ? 'translate-x-0' : 'translate-x-[-50px]'}`}
+              >
+                {localize('com_ui_projects')}
+              </h1>
+            </div>
             <Button
               onClick={handleNewProject}
               className="flex items-center gap-2"
