@@ -381,3 +381,8 @@ export const getEffectivePermissions = (resourceType: ResourceType, resourceId: 
 // SharePoint Graph API Token
 export const graphToken = (scopes: string) =>
   `${BASE_URL}/api/auth/graph-token?scopes=${encodeURIComponent(scopes)}`;
+
+// Workspaces
+export const workspaces = () => `${BASE_URL}/api/workspaces`;
+export const getWorkspaces = (page = 1, limit = 20) =>
+  `${workspaces()}?page=${page}&limit=${limit}`;

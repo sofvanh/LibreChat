@@ -6,6 +6,7 @@ import * as ag from './types/agents';
 import * as m from './types/mutations';
 import * as q from './types/queries';
 import * as f from './types/files';
+import * as w from './types/workspaces';
 import * as config from './config';
 import request from './request';
 import * as s from './schemas';
@@ -964,4 +965,13 @@ export function getGraphApiToken(params: q.GraphTokenParams): Promise<q.GraphTok
 
 export function getDomainServerBaseUrl(): string {
   return `${endpoints.apiBaseUrl()}/api`;
+}
+
+// Workspaces
+export function getWorkspaces(page = 1, limit = 20): Promise<w.TWorkspacesResponse> {
+  return request.get(endpoints.getWorkspaces(page, limit));
+}
+
+export function createWorkspace(data: w.TCreateWorkspaceRequest): Promise<w.TWorkspace> {
+  return request.post(endpoints.workspaces(), data);
 }
