@@ -1,5 +1,6 @@
 const { logger } = require('@librechat/data-schemas');
-const { createWorkspace, getWorkspacesByUser } = require('~/models/Workspace');
+const { createWorkspace, getWorkspacesByUser, getWorkspaceById } = require('~/models/Workspace');
+const { Conversation } = require('~/db/models');
 
 /**
  * Creates a new workspace.
@@ -74,7 +75,88 @@ const listWorkspacesHandler = async (req, res) => {
   }
 };
 
+/**
+ * Gets a workspace by ID.
+ * @route GET /api/workspaces/:id
+ * @param {string} req.params.id - Workspace ID
+ * @returns {Object} 200 - Workspace details
+ */
+const getWorkspaceHandler = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const workspace = await getWorkspaceById(id, req.user.id);
+
+    if (!workspace) {
+      return res.status(404).json({ error: 'Workspace not found' });
+    }
+
+    return res.status(200).json(workspace);
+  } catch (error) {
+    logger.error('[getWorkspaceHandler] Error:', error);
+    return res.status(500).json({ error: 'Failed to fetch workspace' });
+  }
+};
+
+/**
+ * Gets conversations associated with a workspace.
+ * @route GET /api/workspaces/:id/conversations
+ * @param {string} req.params.id - Workspace ID
+ * @param {Object} req.query - Query parameters
+ * @param {number} [req.query.limit=25] - Number of conversations per page
+ * @param {string} [req.query.cursor] - Cursor for pagination
+ * @returns {Object} 200 - Conversations list with pagination
+ */
+const getWorkspaceConversationsHandler = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const limit = Math.min(parseInt(req.query.limit) || 25, 100);
+    const cursor = req.query.cursor;
+
+    // Verify workspace ownership
+    const workspace = await getWorkspaceById(id, req.user.id);
+    if (!workspace) {
+      return res.status(404).json({ error: 'Workspace not found' });
+    }
+
+    // Build query filters
+    const filters = [
+      { user: req.user.id },
+      { workspace_id: id },
+      { $or: [{ expiredAt: null }, { expiredAt: { $exists: false } }] },
+    ];
+
+    if (cursor) {
+      filters.push({ updatedAt: { $lt: new Date(cursor) } });
+    }
+
+    const query = { $and: filters };
+
+    const conversations = await Conversation.find(query)
+      .select('conversationId endpoint title createdAt updatedAt user model workspace_id')
+      .sort({ updatedAt: -1 })
+      .limit(limit + 1)
+      .lean();
+
+    let nextCursor = null;
+    if (conversations.length > limit) {
+      const lastConvo = conversations.pop();
+      nextCursor = lastConvo.updatedAt.toISOString();
+    }
+
+    return res.status(200).json({
+      conversations,
+      nextCursor,
+    });
+  } catch (error) {
+    logger.error('[getWorkspaceConversationsHandler] Error:', error);
+    return res.status(500).json({ error: 'Failed to fetch workspace conversations' });
+  }
+};
+
 module.exports = {
   createWorkspaceHandler,
   listWorkspacesHandler,
+  getWorkspaceHandler,
+  getWorkspaceConversationsHandler,
 };

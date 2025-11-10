@@ -975,3 +975,15 @@ export function getWorkspaces(page = 1, limit = 20): Promise<w.TWorkspacesRespon
 export function createWorkspace(data: w.TCreateWorkspaceRequest): Promise<w.TWorkspace> {
   return request.post(endpoints.workspaces(), data);
 }
+
+export function getWorkspaceById(id: string): Promise<w.TWorkspace> {
+  return request.get(endpoints.getWorkspaceById(id));
+}
+
+export function getWorkspaceConversations(
+  id: string,
+  cursor?: string,
+  limit = 25,
+): Promise<w.TWorkspaceConversationsResponse> {
+  return request.get(endpoints.getWorkspaceConversations(id, cursor, limit));
+}

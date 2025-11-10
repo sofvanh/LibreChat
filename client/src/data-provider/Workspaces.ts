@@ -9,6 +9,7 @@ import type {
   TWorkspace,
   TWorkspacesResponse,
   TCreateWorkspaceRequest,
+  TWorkspaceConversationsResponse,
 } from 'librechat-data-provider';
 
 export const useWorkspacesQuery = (
@@ -38,4 +39,34 @@ export const useCreateWorkspaceMutation = (): UseMutationResult<
       queryClient.invalidateQueries([QueryKeys.workspaces]);
     },
   });
+};
+
+export const useWorkspaceQuery = (
+  id: string,
+  config?: UseQueryOptions<TWorkspace>,
+): QueryObserverResult<TWorkspace> => {
+  return useQuery<TWorkspace>([QueryKeys.workspaces, id], () => dataService.getWorkspaceById(id), {
+    refetchOnWindowFocus: false,
+    staleTime: 60000, // 1 minute
+    enabled: !!id,
+    ...config,
+  });
+};
+
+export const useWorkspaceConversationsQuery = (
+  id: string,
+  cursor?: string,
+  limit = 25,
+  config?: UseQueryOptions<TWorkspaceConversationsResponse>,
+): QueryObserverResult<TWorkspaceConversationsResponse> => {
+  return useQuery<TWorkspaceConversationsResponse>(
+    [QueryKeys.workspaces, id, 'conversations', cursor, limit],
+    () => dataService.getWorkspaceConversations(id, cursor, limit),
+    {
+      refetchOnWindowFocus: false,
+      staleTime: 30000, // 30 seconds
+      enabled: !!id,
+      ...config,
+    },
+  );
 };

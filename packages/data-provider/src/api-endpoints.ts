@@ -386,3 +386,6 @@ export const graphToken = (scopes: string) =>
 export const workspaces = () => `${BASE_URL}/api/workspaces`;
 export const getWorkspaces = (page = 1, limit = 20) =>
   `${workspaces()}?page=${page}&limit=${limit}`;
+export const getWorkspaceById = (id: string) => `${workspaces()}/${id}`;
+export const getWorkspaceConversations = (id: string, cursor?: string, limit = 25) =>
+  `${workspaces()}/${id}/conversations${cursor ? `?cursor=${cursor}&limit=${limit}` : `?limit=${limit}`}`;

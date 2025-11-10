@@ -27,6 +27,7 @@ export const bedrockInputSchema = s.tConversationSchema
     maxOutputTokens: true,
     maxContextTokens: true,
     artifacts: true,
+    workspace_id: true,
     /* Bedrock params; optionType: 'model' */
     region: true,
     system: true,

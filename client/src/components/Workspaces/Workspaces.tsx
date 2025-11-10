@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { Button, useMediaQuery, Spinner } from '@librechat/client';
 import { useWorkspacesQuery } from '~/data-provider';
@@ -11,16 +11,19 @@ import WorkspaceCreateDialog from './WorkspaceCreateDialog';
 
 export default function Workspaces() {
   const localize = useLocalize();
+  const navigate = useNavigate();
   const isSmallScreen = useMediaQuery('(max-width: 768px)');
   const { navVisible, setNavVisible } = useOutletContext<ContextType>();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   const { data, isLoading, isError } = useWorkspacesQuery(1, 20);
 
-  const handleWorkspaceClick = useCallback((workspaceId: string) => {
-    // TODO: Navigate to workspace detail or start conversation with workspace context
-    console.log('Workspace clicked:', workspaceId);
-  }, []);
+  const handleWorkspaceClick = useCallback(
+    (workspaceId: string) => {
+      navigate(`/workspaces/${workspaceId}`);
+    },
+    [navigate],
+  );
 
   const handleNewWorkspace = useCallback(() => {
     setIsCreateDialogOpen(true);

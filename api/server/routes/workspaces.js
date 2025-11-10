@@ -3,6 +3,8 @@ const { requireJwtAuth } = require('~/server/middleware');
 const {
   createWorkspaceHandler,
   listWorkspacesHandler,
+  getWorkspaceHandler,
+  getWorkspaceConversationsHandler,
 } = require('~/server/controllers/WorkspaceController');
 
 const router = express.Router();
@@ -24,5 +26,21 @@ router.post('/', createWorkspaceHandler);
  * @returns {Object} 200 - Workspaces list with pagination
  */
 router.get('/', listWorkspacesHandler);
+
+/**
+ * Gets a workspace by ID.
+ * @route GET /workspaces/:id
+ * @param {string} req.params.id - Workspace ID
+ * @returns {Object} 200 - Workspace details
+ */
+router.get('/:id', getWorkspaceHandler);
+
+/**
+ * Gets conversations for a workspace.
+ * @route GET /workspaces/:id/conversations
+ * @param {string} req.params.id - Workspace ID
+ * @returns {Object} 200 - Conversations list
+ */
+router.get('/:id/conversations', getWorkspaceConversationsHandler);
 
 module.exports = router;

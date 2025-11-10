@@ -24,3 +24,19 @@ export interface TCreateWorkspaceRequest {
   description?: string;
   instructions?: string;
 }
+
+export interface TWorkspaceConversation {
+  conversationId: string;
+  endpoint: string;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+  user: string;
+  model?: string;
+  workspace_id?: string;
+}
+
+export interface TWorkspaceConversationsResponse {
+  conversations: TWorkspaceConversation[];
+  nextCursor: string | null;
+}
