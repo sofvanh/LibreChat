@@ -101,7 +101,7 @@ function WorkspaceDetail() {
         {/* Header */}
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border-light bg-surface-primary px-6 py-4">
           <div className="flex items-center gap-3">
-            {isSmallScreen && !navVisible && <OpenSidebar />}
+            {!isSmallScreen && !navVisible && <OpenSidebar setNavVisible={setNavVisible} />}
             <Button
               variant="ghost"
               size="icon"
