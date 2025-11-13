@@ -1,10 +1,14 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useOutletContext } from 'react-router-dom';
-import { ArrowLeft, MessageSquarePlus, Loader2 } from 'lucide-react';
-import { Button, Spinner, useMediaQuery } from '@librechat/client';
+import { ArrowLeft, MessageSquarePlus, Loader2, FileText, Save, X } from 'lucide-react';
+import { Button, Spinner, useMediaQuery, useToastContext, Textarea } from '@librechat/client';
 import { Constants } from 'librechat-data-provider';
-import { useWorkspaceQuery, useWorkspaceConversationsQuery } from '~/data-provider';
+import {
+  useWorkspaceQuery,
+  useWorkspaceConversationsQuery,
+  useUpdateWorkspaceMutation,
+} from '~/data-provider';
 import { useLocalize, useNewConvo, useNavigateToConvo } from '~/hooks';
 import type { ContextType } from '~/common';
 import { OpenSidebar } from '~/components/Chat/Menus';
@@ -13,6 +17,7 @@ function WorkspaceDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const localize = useLocalize();
+  const { showToast } = useToastContext();
   const isSmallScreen = useMediaQuery('(max-width: 768px)');
   const { navVisible, setNavVisible } = useOutletContext<ContextType>();
   const { newConversation } = useNewConvo(0);
@@ -21,6 +26,13 @@ function WorkspaceDetail() {
   const { data: workspace, isLoading: workspaceLoading } = useWorkspaceQuery(id ?? '');
   const { data: conversationsData, isLoading: conversationsLoading } =
     useWorkspaceConversationsQuery(id ?? '');
+
+  // State for editing instructions
+  const [isEditingInstructions, setIsEditingInstructions] = useState(false);
+  const [instructionsValue, setInstructionsValue] = useState('');
+
+  // Update workspace mutation
+  const updateWorkspaceMutation = useUpdateWorkspaceMutation();
 
   const handleBack = useCallback(() => {
     navigate('/workspaces');
@@ -36,12 +48,48 @@ function WorkspaceDetail() {
       conversationId: Constants.NEW_CONVO as string,
       workspace_id: workspace._id,
       title: `New Chat in ${workspace.name}`,
+      promptPrefix: workspace.instructions || undefined,
     };
 
     newConversation({
       template,
     });
   }, [workspace, newConversation]);
+
+  const handleEditInstructions = useCallback(() => {
+    setInstructionsValue(workspace?.instructions || '');
+    setIsEditingInstructions(true);
+  }, [workspace]);
+
+  const handleCancelEdit = useCallback(() => {
+    setIsEditingInstructions(false);
+    setInstructionsValue('');
+  }, []);
+
+  const handleSaveInstructions = useCallback(async () => {
+    if (!workspace || !id) {
+      return;
+    }
+
+    try {
+      await updateWorkspaceMutation.mutateAsync({
+        id,
+        data: { instructions: instructionsValue },
+      });
+
+      showToast({
+        message: localize('com_ui_workspace_instructions_saved'),
+        status: 'success',
+      });
+
+      setIsEditingInstructions(false);
+    } catch (error) {
+      showToast({
+        message: localize('com_ui_error_saving'),
+        status: 'error',
+      });
+    }
+  }, [workspace, id, instructionsValue, updateWorkspaceMutation, showToast, localize]);
 
   const handleConversationClick = useCallback(
     (conversationId: string) => {
@@ -121,6 +169,84 @@ function WorkspaceDetail() {
 
         {/* Content */}
         <div className="flex-1 px-6 py-8">
+          {/* Workspace Instructions Section */}
+          <div className="mb-8">
+            <div className="mx-auto max-w-3xl">
+              <div className="rounded-xl border border-border-light bg-surface-secondary p-6">
+                <div className="mb-4 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <FileText className="size-6 text-text-secondary" />
+                    <h2 className="text-lg font-semibold text-text-primary">
+                      {localize('com_ui_workspace_instructions')}
+                    </h2>
+                  </div>
+                  {!isEditingInstructions && (
+                    <Button
+                      onClick={handleEditInstructions}
+                      variant="outline"
+                      size="sm"
+                      className="text-sm"
+                    >
+                      {workspace.instructions
+                        ? localize('com_ui_edit')
+                        : localize('com_ui_add')}
+                    </Button>
+                  )}
+                </div>
+
+                {isEditingInstructions ? (
+                  <div className="space-y-4">
+                    <p className="text-sm text-text-secondary">
+                      {localize('com_ui_workspace_instructions_description')}
+                    </p>
+                    <Textarea
+                      value={instructionsValue}
+                      onChange={(e) => setInstructionsValue(e.target.value)}
+                      placeholder={localize('com_ui_workspace_instructions_placeholder')}
+                      className="min-h-[150px] w-full resize-none rounded-lg border border-border-medium bg-surface-primary p-3 text-sm text-text-primary placeholder:text-text-secondary focus:border-border-heavy focus:outline-none"
+                      rows={6}
+                    />
+                    <div className="flex items-center gap-2">
+                      <Button
+                        onClick={handleSaveInstructions}
+                        disabled={updateWorkspaceMutation.isLoading}
+                        className="flex items-center gap-2 bg-green-500 text-white hover:bg-green-600"
+                      >
+                        {updateWorkspaceMutation.isLoading ? (
+                          <Loader2 className="size-4 animate-spin" />
+                        ) : (
+                          <Save className="size-4" />
+                        )}
+                        <span>{localize('com_ui_save')}</span>
+                      </Button>
+                      <Button
+                        onClick={handleCancelEdit}
+                        disabled={updateWorkspaceMutation.isLoading}
+                        variant="outline"
+                        className="flex items-center gap-2"
+                      >
+                        <X className="size-4" />
+                        <span>{localize('com_ui_cancel')}</span>
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    {workspace.instructions ? (
+                      <p className="whitespace-pre-wrap text-sm text-text-primary">
+                        {workspace.instructions}
+                      </p>
+                    ) : (
+                      <p className="text-sm italic text-text-secondary">
+                        {localize('com_ui_no_instructions_set')}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
           {/* Start New Chat Section */}
           <div className="mb-8">
             <div className="mx-auto max-w-3xl">
