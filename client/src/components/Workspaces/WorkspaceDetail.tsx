@@ -85,7 +85,7 @@ function WorkspaceDetail() {
       setIsEditingInstructions(false);
     } catch (error) {
       showToast({
-        message: localize('com_ui_error_saving'),
+        message: localize('com_ui_error_workspace_update'),
         status: 'error',
       });
     }
@@ -187,9 +187,7 @@ function WorkspaceDetail() {
                       size="sm"
                       className="text-sm"
                     >
-                      {workspace.instructions
-                        ? localize('com_ui_edit')
-                        : localize('com_ui_add')}
+                      {workspace.instructions ? localize('com_ui_edit') : localize('com_ui_add')}
                     </Button>
                   )}
                 </div>
