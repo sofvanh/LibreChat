@@ -980,6 +980,13 @@ export function getWorkspaceById(id: string): Promise<w.TWorkspace> {
   return request.get(endpoints.getWorkspaceById(id));
 }
 
+export function updateWorkspace(
+  id: string,
+  data: w.TUpdateWorkspaceRequest,
+): Promise<w.TWorkspace> {
+  return request.patch(endpoints.getWorkspaceById(id), data);
+}
+
 export function getWorkspaceConversations(
   id: string,
   cursor?: string,

@@ -25,6 +25,12 @@ export interface TCreateWorkspaceRequest {
   instructions?: string;
 }
 
+export interface TUpdateWorkspaceRequest {
+  name?: string;
+  description?: string;
+  instructions?: string;
+}
+
 export interface TWorkspaceConversation {
   conversationId: string;
   endpoint: string;

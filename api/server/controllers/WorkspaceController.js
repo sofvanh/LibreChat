@@ -1,5 +1,10 @@
 const { logger } = require('@librechat/data-schemas');
-const { createWorkspace, getWorkspacesByUser, getWorkspaceById } = require('~/models/Workspace');
+const {
+  createWorkspace,
+  getWorkspacesByUser,
+  getWorkspaceById,
+  updateWorkspace,
+} = require('~/models/Workspace');
 const { Conversation } = require('~/db/models');
 
 /**
@@ -99,6 +104,57 @@ const getWorkspaceHandler = async (req, res) => {
 };
 
 /**
+ * Updates a workspace.
+ * @route PATCH /api/workspaces/:id
+ * @param {string} req.params.id - Workspace ID
+ * @param {Object} req.body - The update data
+ * @param {string} [req.body.name] - Workspace name
+ * @param {string} [req.body.description] - Workspace description
+ * @param {string} [req.body.instructions] - Custom system prompt
+ * @returns {Object} 200 - Updated workspace
+ */
+const updateWorkspaceHandler = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, description, instructions } = req.body;
+
+    // Build update data object with only provided fields
+    const updateData = {};
+
+    if (name !== undefined) {
+      if (typeof name !== 'string' || name.trim() === '') {
+        return res.status(400).json({ error: 'Workspace name cannot be empty' });
+      }
+      updateData.name = name.trim();
+    }
+
+    if (description !== undefined) {
+      updateData.description = description ? description.trim() : '';
+    }
+
+    if (instructions !== undefined) {
+      updateData.instructions = instructions ? instructions.trim() : '';
+    }
+
+    // If no fields to update, return error
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ error: 'No valid fields to update' });
+    }
+
+    const workspace = await updateWorkspace(id, req.user.id, updateData);
+
+    if (!workspace) {
+      return res.status(404).json({ error: 'Workspace not found' });
+    }
+
+    return res.status(200).json(workspace);
+  } catch (error) {
+    logger.error('[updateWorkspaceHandler] Error:', error);
+    return res.status(500).json({ error: 'Failed to update workspace' });
+  }
+};
+
+/**
  * Gets conversations associated with a workspace.
  * @route GET /api/workspaces/:id/conversations
  * @param {string} req.params.id - Workspace ID
@@ -158,5 +214,6 @@ module.exports = {
   createWorkspaceHandler,
   listWorkspacesHandler,
   getWorkspaceHandler,
+  updateWorkspaceHandler,
   getWorkspaceConversationsHandler,
 };

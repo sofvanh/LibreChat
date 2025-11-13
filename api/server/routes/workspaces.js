@@ -4,6 +4,7 @@ const {
   createWorkspaceHandler,
   listWorkspacesHandler,
   getWorkspaceHandler,
+  updateWorkspaceHandler,
   getWorkspaceConversationsHandler,
 } = require('~/server/controllers/WorkspaceController');
 
@@ -34,6 +35,15 @@ router.get('/', listWorkspacesHandler);
  * @returns {Object} 200 - Workspace details
  */
 router.get('/:id', getWorkspaceHandler);
+
+/**
+ * Updates a workspace by ID.
+ * @route PATCH /workspaces/:id
+ * @param {string} req.params.id - Workspace ID
+ * @param {Object} req.body - The update data
+ * @returns {Object} 200 - Updated workspace
+ */
+router.patch('/:id', updateWorkspaceHandler);
 
 /**
  * Gets conversations for a workspace.

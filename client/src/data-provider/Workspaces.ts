@@ -9,6 +9,7 @@ import type {
   TWorkspace,
   TWorkspacesResponse,
   TCreateWorkspaceRequest,
+  TUpdateWorkspaceRequest,
   TWorkspaceConversationsResponse,
 } from 'librechat-data-provider';
 
@@ -39,6 +40,29 @@ export const useCreateWorkspaceMutation = (): UseMutationResult<
       queryClient.invalidateQueries([QueryKeys.workspaces]);
     },
   });
+};
+
+export const useUpdateWorkspaceMutation = (): UseMutationResult<
+  TWorkspace,
+  Error,
+  { id: string; data: TUpdateWorkspaceRequest }
+> => {
+  const queryClient = useQueryClient();
+  return useMutation(
+    ({ id, data }: { id: string; data: TUpdateWorkspaceRequest }) =>
+      dataService.updateWorkspace(id, data),
+    {
+      onSuccess: (updatedWorkspace) => {
+        // Update the individual workspace query
+        queryClient.setQueryData<TWorkspace>(
+          [QueryKeys.workspaces, updatedWorkspace._id],
+          updatedWorkspace,
+        );
+        // Invalidate the workspaces list to refresh
+        queryClient.invalidateQueries([QueryKeys.workspaces]);
+      },
+    },
+  );
 };
 
 export const useWorkspaceQuery = (
