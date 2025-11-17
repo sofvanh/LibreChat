@@ -12,6 +12,7 @@ import {
 import { useLocalize, useNewConvo, useNavigateToConvo } from '~/hooks';
 import type { ContextType } from '~/common';
 import { OpenSidebar } from '~/components/Chat/Menus';
+import WorkspaceFiles from './WorkspaceFiles';
 
 function WorkspaceDetail() {
   const { id } = useParams<{ id: string }>();
@@ -83,7 +84,7 @@ function WorkspaceDetail() {
       });
 
       setIsEditingInstructions(false);
-    } catch (error) {
+    } catch (_error) {
       showToast({
         message: localize('com_ui_error_workspace_update'),
         status: 'error',
@@ -243,6 +244,11 @@ function WorkspaceDetail() {
                 )}
               </div>
             </div>
+          </div>
+
+          {/* Workspace Files Section */}
+          <div className="mb-8">
+            <WorkspaceFiles fileIds={workspace.files} />
           </div>
 
           {/* Start New Chat Section */}
