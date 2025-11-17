@@ -994,3 +994,14 @@ export function getWorkspaceConversations(
 ): Promise<w.TWorkspaceConversationsResponse> {
   return request.get(endpoints.getWorkspaceConversations(id, cursor, limit));
 }
+
+export function getWorkspaceFiles(id: string): Promise<f.TFile[]> {
+  return request.get(endpoints.getWorkspaceFiles(id));
+}
+
+export function manageWorkspaceFiles(
+  id: string,
+  data: { action: 'add' | 'remove'; file_ids: string[] },
+): Promise<w.TWorkspace> {
+  return request.patch(endpoints.manageWorkspaceFiles(id), data);
+}

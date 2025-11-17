@@ -389,3 +389,5 @@ export const getWorkspaces = (page = 1, limit = 20) =>
 export const getWorkspaceById = (id: string) => `${workspaces()}/${id}`;
 export const getWorkspaceConversations = (id: string, cursor?: string, limit = 25) =>
   `${workspaces()}/${id}/conversations${cursor ? `?cursor=${cursor}&limit=${limit}` : `?limit=${limit}`}`;
+export const getWorkspaceFiles = (id: string) => `${workspaces()}/${id}/files`;
+export const manageWorkspaceFiles = (id: string) => `${workspaces()}/${id}/files`;

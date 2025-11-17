@@ -210,10 +210,110 @@ const getWorkspaceConversationsHandler = async (req, res) => {
   }
 };
 
+/**
+ * Gets files associated with a workspace.
+ * @route GET /api/workspaces/:id/files
+ * @param {string} req.params.id - Workspace ID
+ * @returns {Object} 200 - Array of files
+ */
+const getWorkspaceFilesHandler = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { getFiles } = require('~/models/File');
+
+    // Verify workspace ownership
+    const workspace = await getWorkspaceById(id, req.user.id);
+    if (!workspace) {
+      return res.status(404).json({ error: 'Workspace not found' });
+    }
+
+    if (!workspace.files || workspace.files.length === 0) {
+      return res.status(200).json([]);
+    }
+
+    // Fetch workspace files
+    const files = await getFiles({ file_id: { $in: workspace.files } }, null, { text: 0 });
+
+    return res.status(200).json(files);
+  } catch (error) {
+    logger.error('[getWorkspaceFilesHandler] Error:', error);
+    return res.status(500).json({ error: 'Failed to fetch workspace files' });
+  }
+};
+
+/**
+ * Manages files for a workspace (add or remove).
+ * @route PATCH /api/workspaces/:id/files
+ * @param {string} req.params.id - Workspace ID
+ * @param {Object} req.body - Request body
+ * @param {string} req.body.action - Action to perform ('add' or 'remove')
+ * @param {string[]} req.body.file_ids - Array of file IDs
+ * @returns {Object} 200 - Updated workspace
+ */
+const manageWorkspaceFilesHandler = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { action, file_ids } = req.body;
+    const { getFiles } = require('~/models/File');
+
+    // Validate input
+    if (!action || !['add', 'remove'].includes(action)) {
+      return res.status(400).json({ error: 'Invalid action. Must be "add" or "remove"' });
+    }
+
+    if (!file_ids || !Array.isArray(file_ids) || file_ids.length === 0) {
+      return res.status(400).json({ error: 'file_ids must be a non-empty array' });
+    }
+
+    // Verify workspace ownership
+    const workspace = await getWorkspaceById(id, req.user.id);
+    if (!workspace) {
+      return res.status(404).json({ error: 'Workspace not found' });
+    }
+
+    if (action === 'add') {
+      // Verify user has access to all files
+      const files = await getFiles({ file_id: { $in: file_ids } });
+
+      if (files.length !== file_ids.length) {
+        return res.status(404).json({ error: 'One or more files not found' });
+      }
+
+      // Check that user owns all files
+      const nonOwnedFiles = files.filter((file) => file.user.toString() !== req.user.id.toString());
+      if (nonOwnedFiles.length > 0) {
+        return res.status(403).json({ error: 'You can only add files you own to the workspace' });
+      }
+
+      // Add files to workspace (avoid duplicates)
+      const currentFiles = workspace.files || [];
+      const newFiles = file_ids.filter((fileId) => !currentFiles.includes(fileId));
+      const updatedFiles = [...currentFiles, ...newFiles];
+
+      const updatedWorkspace = await updateWorkspace(id, req.user.id, { files: updatedFiles });
+
+      return res.status(200).json(updatedWorkspace);
+    } else if (action === 'remove') {
+      // Remove files from workspace
+      const currentFiles = workspace.files || [];
+      const updatedFiles = currentFiles.filter((fileId) => !file_ids.includes(fileId));
+
+      const updatedWorkspace = await updateWorkspace(id, req.user.id, { files: updatedFiles });
+
+      return res.status(200).json(updatedWorkspace);
+    }
+  } catch (error) {
+    logger.error('[manageWorkspaceFilesHandler] Error:', error);
+    return res.status(500).json({ error: 'Failed to manage workspace files' });
+  }
+};
+
 module.exports = {
   createWorkspaceHandler,
   listWorkspacesHandler,
   getWorkspaceHandler,
   updateWorkspaceHandler,
   getWorkspaceConversationsHandler,
+  getWorkspaceFilesHandler,
+  manageWorkspaceFilesHandler,
 };

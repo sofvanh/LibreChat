@@ -6,6 +6,8 @@ const {
   getWorkspaceHandler,
   updateWorkspaceHandler,
   getWorkspaceConversationsHandler,
+  getWorkspaceFilesHandler,
+  manageWorkspaceFilesHandler,
 } = require('~/server/controllers/WorkspaceController');
 
 const router = express.Router();
@@ -52,5 +54,22 @@ router.patch('/:id', updateWorkspaceHandler);
  * @returns {Object} 200 - Conversations list
  */
 router.get('/:id/conversations', getWorkspaceConversationsHandler);
+
+/**
+ * Gets files for a workspace.
+ * @route GET /workspaces/:id/files
+ * @param {string} req.params.id - Workspace ID
+ * @returns {Object} 200 - Files list
+ */
+router.get('/:id/files', getWorkspaceFilesHandler);
+
+/**
+ * Manages files for a workspace (add or remove).
+ * @route PATCH /workspaces/:id/files
+ * @param {string} req.params.id - Workspace ID
+ * @param {Object} req.body - Action and file IDs
+ * @returns {Object} 200 - Updated workspace
+ */
+router.patch('/:id/files', manageWorkspaceFilesHandler);
 
 module.exports = router;

@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useOutletContext } from 'react-router-dom';
 import { ArrowLeft, MessageSquarePlus, Loader2, FileText, Save, X } from 'lucide-react';
@@ -8,6 +8,9 @@ import {
   useWorkspaceQuery,
   useWorkspaceConversationsQuery,
   useUpdateWorkspaceMutation,
+  useWorkspaceFilesQuery,
+  useManageWorkspaceFilesMutation,
+  useUploadFileMutation,
 } from '~/data-provider';
 import { useLocalize, useNewConvo, useNavigateToConvo } from '~/hooks';
 import type { ContextType } from '~/common';
@@ -27,13 +30,18 @@ function WorkspaceDetail() {
   const { data: workspace, isLoading: workspaceLoading } = useWorkspaceQuery(id ?? '');
   const { data: conversationsData, isLoading: conversationsLoading } =
     useWorkspaceConversationsQuery(id ?? '');
+  const { data: workspaceFiles = [], isLoading: filesLoading } = useWorkspaceFilesQuery(id ?? '');
 
   // State for editing instructions
   const [isEditingInstructions, setIsEditingInstructions] = useState(false);
   const [instructionsValue, setInstructionsValue] = useState('');
+  const [uploadingFile, setUploadingFile] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Update workspace mutation
+  // Mutations
   const updateWorkspaceMutation = useUpdateWorkspaceMutation();
+  const manageFilesMutation = useManageWorkspaceFilesMutation();
+  const uploadFileMutation = useUploadFileMutation();
 
   const handleBack = useCallback(() => {
     navigate('/workspaces');
@@ -102,6 +110,84 @@ function WorkspaceDetail() {
       }
     },
     [conversationsData, navigateToConvo],
+  );
+
+  const handleAddFiles = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  const handleFileChange = useCallback(
+    async (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file || !id) {
+        return;
+      }
+
+      try {
+        setUploadingFile(true);
+
+        // Upload file to server
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('file_id', crypto.randomUUID());
+        formData.append('endpoint', 'agents'); // Use agents endpoint for proper image handling
+        formData.append('message_file', 'true'); // Mark as message attachment, not tool resource
+
+        const uploadedFile = await uploadFileMutation.mutateAsync(formData);
+
+        // Add file to workspace
+        await manageFilesMutation.mutateAsync({
+          id,
+          action: 'add',
+          file_ids: [uploadedFile.file_id],
+        });
+
+        showToast({
+          message: localize('com_ui_saved'),
+          status: 'success',
+        });
+      } catch (error) {
+        console.error('Error uploading file:', error);
+        showToast({
+          message: localize('com_error_files_upload'),
+          status: 'error',
+        });
+      } finally {
+        setUploadingFile(false);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      }
+    },
+    [id, uploadFileMutation, manageFilesMutation, showToast, localize],
+  );
+
+  const handleRemoveFile = useCallback(
+    async (fileId: string) => {
+      if (!id) {
+        return;
+      }
+
+      try {
+        await manageFilesMutation.mutateAsync({
+          id,
+          action: 'remove',
+          file_ids: [fileId],
+        });
+
+        showToast({
+          message: localize('com_ui_saved'),
+          status: 'success',
+        });
+      } catch (error) {
+        console.error('Error removing file:', error);
+        showToast({
+          message: localize('com_error_files_process'),
+          status: 'error',
+        });
+      }
+    },
+    [id, manageFilesMutation, showToast, localize],
   );
 
   const formatUpdatedAt = (dateString: string) => {
@@ -248,7 +334,18 @@ function WorkspaceDetail() {
 
           {/* Workspace Files Section */}
           <div className="mb-8">
-            <WorkspaceFiles fileIds={workspace.files} />
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              style={{ display: 'none' }}
+            />
+            <WorkspaceFiles
+              files={workspaceFiles}
+              onAddFiles={handleAddFiles}
+              onRemoveFile={handleRemoveFile}
+              isLoading={filesLoading || uploadingFile}
+            />
           </div>
 
           {/* Start New Chat Section */}
@@ -280,36 +377,44 @@ function WorkspaceDetail() {
             <h2 className="mb-4 text-lg font-semibold text-text-primary">
               {localize('com_ui_workspace_conversations')}
             </h2>
-            {conversationsLoading ? (
+            {conversationsLoading && (
               <div className="flex h-32 items-center justify-center">
                 <Loader2 className="size-6 animate-spin text-text-secondary" />
               </div>
-            ) : conversationsData?.conversations && conversationsData.conversations.length > 0 ? (
-              <div className="space-y-2">
-                {conversationsData.conversations.map((conversation) => (
-                  <button
-                    key={conversation.conversationId}
-                    onClick={() => handleConversationClick(conversation.conversationId)}
-                    className="w-full rounded-lg border border-border-light bg-surface-secondary p-4 text-left transition-colors hover:bg-surface-hover"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h3 className="font-medium text-text-primary">{conversation.title}</h3>
-                        <p className="mt-1 text-xs text-text-secondary">
-                          {conversation.model && `${conversation.model} · `}
-                          {formatUpdatedAt(conversation.updatedAt)}
-                        </p>
-                      </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <div className="flex h-32 flex-col items-center justify-center rounded-lg border border-border-light bg-surface-secondary text-text-secondary">
-                <p>{localize('com_ui_no_conversations_workspace')}</p>
-                <p className="mt-2 text-sm">{localize('com_ui_start_first_chat')}</p>
-              </div>
             )}
+
+            {!conversationsLoading &&
+              conversationsData?.conversations &&
+              conversationsData.conversations.length > 0 && (
+                <div className="space-y-2">
+                  {conversationsData.conversations.map((conversation) => (
+                    <button
+                      key={conversation.conversationId}
+                      onClick={() => handleConversationClick(conversation.conversationId)}
+                      className="w-full rounded-lg border border-border-light bg-surface-secondary p-4 text-left transition-colors hover:bg-surface-hover"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h3 className="font-medium text-text-primary">{conversation.title}</h3>
+                          <p className="mt-1 text-xs text-text-secondary">
+                            {conversation.model && `${conversation.model} · `}
+                            {formatUpdatedAt(conversation.updatedAt)}
+                          </p>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+            {!conversationsLoading &&
+              (!conversationsData?.conversations ||
+                conversationsData.conversations.length === 0) && (
+                <div className="flex h-32 flex-col items-center justify-center rounded-lg border border-border-light bg-surface-secondary text-text-secondary">
+                  <p>{localize('com_ui_no_conversations_workspace')}</p>
+                  <p className="mt-2 text-sm">{localize('com_ui_start_first_chat')}</p>
+                </div>
+              )}
           </div>
         </div>
       </div>

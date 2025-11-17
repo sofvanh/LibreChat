@@ -6,6 +6,7 @@ import type {
   QueryObserverResult,
 } from '@tanstack/react-query';
 import type {
+  TFile,
   TWorkspace,
   TWorkspacesResponse,
   TCreateWorkspaceRequest,
@@ -91,6 +92,47 @@ export const useWorkspaceConversationsQuery = (
       staleTime: 30000, // 30 seconds
       enabled: !!id,
       ...config,
+    },
+  );
+};
+
+export const useWorkspaceFilesQuery = (
+  id: string,
+  config?: UseQueryOptions<TFile[]>,
+): QueryObserverResult<TFile[]> => {
+  return useQuery<TFile[]>(
+    [QueryKeys.workspaces, id, 'files'],
+    () => dataService.getWorkspaceFiles(id),
+    {
+      refetchOnWindowFocus: false,
+      staleTime: 60000, // 1 minute
+      enabled: !!id,
+      ...config,
+    },
+  );
+};
+
+export const useManageWorkspaceFilesMutation = (): UseMutationResult<
+  TWorkspace,
+  Error,
+  { id: string; action: 'add' | 'remove'; file_ids: string[] }
+> => {
+  const queryClient = useQueryClient();
+  return useMutation(
+    ({ id, action, file_ids }: { id: string; action: 'add' | 'remove'; file_ids: string[] }) =>
+      dataService.manageWorkspaceFiles(id, { action, file_ids }),
+    {
+      onSuccess: (updatedWorkspace) => {
+        // Update the individual workspace query
+        queryClient.setQueryData<TWorkspace>(
+          [QueryKeys.workspaces, updatedWorkspace._id],
+          updatedWorkspace,
+        );
+        // Invalidate workspace files query
+        queryClient.invalidateQueries([QueryKeys.workspaces, updatedWorkspace._id, 'files']);
+        // Invalidate the workspaces list
+        queryClient.invalidateQueries([QueryKeys.workspaces]);
+      },
     },
   );
 };
