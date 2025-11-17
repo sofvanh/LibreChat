@@ -7,6 +7,7 @@ const concurrentLimiter = require('./concurrentLimiter');
 const validateEndpoint = require('./validateEndpoint');
 const requireLocalAuth = require('./requireLocalAuth');
 const canDeleteAccount = require('./canDeleteAccount');
+const injectWorkspaceFiles = require('./injectWorkspaceFiles');
 const accessResources = require('./accessResources');
 const requireLdapAuth = require('./requireLdapAuth');
 const abortMiddleware = require('./abortMiddleware');
@@ -48,6 +49,7 @@ module.exports = {
   checkDomainAllowed,
   validateMessageReq,
   buildEndpointOption,
+  injectWorkspaceFiles,
   validateRegistration,
   validatePasswordReset,
 };
