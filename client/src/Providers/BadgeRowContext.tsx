@@ -9,6 +9,7 @@ import {
   useCodeApiKeyForm,
   useToolToggle,
 } from '~/hooks';
+import { useWorkspaceSelection } from '~/hooks/Input/useWorkspaceSelection';
 import { getTimestampedValue, setTimestamp } from '~/utils/timestamps';
 import { ephemeralAgentByConvoId } from '~/store';
 
@@ -22,6 +23,7 @@ interface BadgeRowContextType {
   codeApiKeyForm: ReturnType<typeof useCodeApiKeyForm>;
   searchApiKeyForm: ReturnType<typeof useSearchApiKeyForm>;
   mcpServerManager: ReturnType<typeof useMCPServerManager>;
+  workspace: ReturnType<typeof useWorkspaceSelection>;
 }
 
 const BadgeRowContext = createContext<BadgeRowContextType | undefined>(undefined);
@@ -188,6 +190,9 @@ export default function BadgeRowProvider({
 
   const mcpServerManager = useMCPServerManager({ conversationId });
 
+  /** Workspace selection hook */
+  const workspace = useWorkspaceSelection({ conversationId });
+
   const value: BadgeRowContextType = {
     webSearch,
     artifacts,
@@ -198,6 +203,7 @@ export default function BadgeRowProvider({
     codeInterpreter,
     searchApiKeyForm,
     mcpServerManager,
+    workspace,
   };
 
   return <BadgeRowContext.Provider value={value}>{children}</BadgeRowContext.Provider>;

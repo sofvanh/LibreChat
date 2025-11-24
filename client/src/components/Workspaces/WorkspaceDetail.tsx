@@ -1,9 +1,8 @@
 import { useCallback, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useOutletContext } from 'react-router-dom';
-import { ArrowLeft, MessageSquarePlus, Loader2, FileText, Save, X } from 'lucide-react';
+import { ArrowLeft, Loader2, FileText, Save, X } from 'lucide-react';
 import { Button, Spinner, useMediaQuery, useToastContext, Textarea } from '@librechat/client';
-import { Constants } from 'librechat-data-provider';
 import {
   useWorkspaceQuery,
   useWorkspaceConversationsQuery,
@@ -12,7 +11,7 @@ import {
   useManageWorkspaceFilesMutation,
   useUploadFileMutation,
 } from '~/data-provider';
-import { useLocalize, useNewConvo, useNavigateToConvo } from '~/hooks';
+import { useLocalize } from '~/hooks';
 import type { ContextType } from '~/common';
 import { OpenSidebar } from '~/components/Chat/Menus';
 import { formatRelativeDate } from '~/utils/dates';
@@ -25,8 +24,6 @@ function WorkspaceDetail() {
   const { showToast } = useToastContext();
   const isSmallScreen = useMediaQuery('(max-width: 768px)');
   const { navVisible, setNavVisible } = useOutletContext<ContextType>();
-  const { newConversation } = useNewConvo(0);
-  const { navigateToConvo } = useNavigateToConvo(0);
 
   const { data: workspace, isLoading: workspaceLoading } = useWorkspaceQuery(id ?? '');
   const { data: conversationsData, isLoading: conversationsLoading } =
@@ -47,24 +44,6 @@ function WorkspaceDetail() {
   const handleBack = useCallback(() => {
     navigate('/workspaces');
   }, [navigate]);
-
-  const handleStartNewChat = useCallback(() => {
-    if (!workspace) {
-      return;
-    }
-
-    // Create a new conversation with workspace context
-    const template = {
-      conversationId: Constants.NEW_CONVO as string,
-      workspace_id: workspace._id,
-      title: `New Chat in ${workspace.name}`,
-      promptPrefix: workspace.instructions || undefined,
-    };
-
-    newConversation({
-      template,
-    });
-  }, [workspace, newConversation]);
 
   const handleEditInstructions = useCallback(() => {
     setInstructionsValue(workspace?.instructions || '');
@@ -103,14 +82,9 @@ function WorkspaceDetail() {
 
   const handleConversationClick = useCallback(
     (conversationId: string) => {
-      const conversation = conversationsData?.conversations.find(
-        (c) => c.conversationId === conversationId,
-      );
-      if (conversation) {
-        navigateToConvo(conversation as any);
-      }
+      navigate(`/c/${conversationId}`);
     },
-    [conversationsData, navigateToConvo],
+    [navigate],
   );
 
   const handleAddFiles = useCallback(() => {
@@ -328,30 +302,6 @@ function WorkspaceDetail() {
               onRemoveFile={handleRemoveFile}
               isLoading={filesLoading || uploadingFile}
             />
-          </div>
-
-          {/* Start New Chat Section */}
-          <div className="mb-8">
-            <div className="mx-auto max-w-3xl">
-              <div className="rounded-xl border border-border-light bg-surface-secondary p-6">
-                <div className="mb-4 flex items-center gap-3">
-                  <MessageSquarePlus className="size-6 text-text-secondary" />
-                  <h2 className="text-lg font-semibold text-text-primary">
-                    {localize('com_ui_start_new_chat')}
-                  </h2>
-                </div>
-                <p className="mb-4 text-sm text-text-secondary">
-                  {localize('com_ui_workspace_new_chat_description')}
-                </p>
-                <Button
-                  onClick={handleStartNewChat}
-                  className="flex items-center gap-2 bg-green-500 text-white hover:bg-green-600"
-                >
-                  <MessageSquarePlus className="size-4" />
-                  <span>{localize('com_ui_new_chat')}</span>
-                </Button>
-              </div>
-            </div>
           </div>
 
           {/* Conversations List */}
