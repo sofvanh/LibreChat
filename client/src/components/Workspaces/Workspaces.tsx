@@ -6,6 +6,7 @@ import { useWorkspacesQuery } from '~/data-provider';
 import { useLocalize } from '~/hooks';
 import type { ContextType } from '~/common';
 import { OpenSidebar } from '~/components/Chat/Menus';
+import { formatRelativeDate } from '~/utils/dates';
 import WorkspaceCard from './WorkspaceCard';
 import WorkspaceCreateDialog from './WorkspaceCreateDialog';
 
@@ -28,28 +29,6 @@ export default function Workspaces() {
   const handleNewWorkspace = useCallback(() => {
     setIsCreateDialogOpen(true);
   }, []);
-
-  const formatUpdatedAt = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 0) {
-      return localize('com_ui_today');
-    } else if (diffDays === 1) {
-      // return localize('com_ui_yesterday');
-      return localize('com_ui_days_ago', { 0: diffDays });
-    } else if (diffDays < 7) {
-      return localize('com_ui_days_ago', { 0: diffDays });
-    } else if (diffDays < 30) {
-      const weeks = Math.floor(diffDays / 7);
-      return localize('com_ui_weeks_ago', { 0: weeks });
-    } else {
-      const months = Math.floor(diffDays / 30);
-      return localize('com_ui_months_ago', { 0: months });
-    }
-  };
 
   return (
     <div className="relative flex h-full w-full grow overflow-hidden bg-presentation">
@@ -106,7 +85,7 @@ export default function Workspaces() {
                   key={workspace._id}
                   title={workspace.name}
                   description={workspace.description || ''}
-                  updatedAt={formatUpdatedAt(workspace.updatedAt)}
+                  updatedAt={formatRelativeDate(workspace.updatedAt, localize)}
                   onClick={() => handleWorkspaceClick(workspace._id)}
                 />
               ))}

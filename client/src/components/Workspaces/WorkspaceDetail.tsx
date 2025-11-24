@@ -15,6 +15,7 @@ import {
 import { useLocalize, useNewConvo, useNavigateToConvo } from '~/hooks';
 import type { ContextType } from '~/common';
 import { OpenSidebar } from '~/components/Chat/Menus';
+import { formatRelativeDate } from '~/utils/dates';
 import WorkspaceFiles from './WorkspaceFiles';
 
 function WorkspaceDetail() {
@@ -189,25 +190,6 @@ function WorkspaceDetail() {
     },
     [id, manageFilesMutation, showToast, localize],
   );
-
-  const formatUpdatedAt = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 0) {
-      return localize('com_ui_today');
-    } else if (diffDays < 7) {
-      return localize('com_ui_days_ago', { 0: diffDays });
-    } else if (diffDays < 30) {
-      const weeks = Math.floor(diffDays / 7);
-      return localize('com_ui_weeks_ago', { 0: weeks });
-    } else {
-      const months = Math.floor(diffDays / 30);
-      return localize('com_ui_months_ago', { 0: months });
-    }
-  };
 
   if (workspaceLoading) {
     return (
@@ -398,7 +380,7 @@ function WorkspaceDetail() {
                           <h3 className="font-medium text-text-primary">{conversation.title}</h3>
                           <p className="mt-1 text-xs text-text-secondary">
                             {conversation.model && `${conversation.model} · `}
-                            {formatUpdatedAt(conversation.updatedAt)}
+                            {formatRelativeDate(conversation.updatedAt, localize)}
                           </p>
                         </div>
                       </div>
