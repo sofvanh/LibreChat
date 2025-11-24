@@ -14,7 +14,7 @@ interface UseWorkspaceSelectionOptions {
 export function useWorkspaceSelection({ conversationId }: UseWorkspaceSelectionOptions) {
   const key = conversationId ?? Constants.NEW_CONVO;
   const [ephemeralAgent, setEphemeralAgent] = useRecoilState(ephemeralAgentByConvoId(key));
-  const { getMessages, conversation, setConversation } = useChatContext();
+  const { conversation, setConversation } = useChatContext();
 
   const storageKey = useMemo(() => `${LocalStorageKeys.LAST_WORKSPACE_SELECTION_}${key}`, [key]);
 
@@ -27,8 +27,9 @@ export function useWorkspaceSelection({ conversationId }: UseWorkspaceSelectionO
 
   // Check if workspace selection is locked (conversation has messages)
   const isLocked = useMemo(() => {
-    console.log('useWorkspaceSelection', conversation);
-    if (!conversation || conversation.messages?.length > 0) return true;
+    if (!conversation || (conversation.messages && conversation.messages.length > 0)) {
+      return true;
+    }
     return false;
   }, [conversation]);
 
