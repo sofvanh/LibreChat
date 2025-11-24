@@ -1,6 +1,5 @@
 import React, { memo, useState, useCallback, useMemo } from 'react';
 import * as Ariakit from '@ariakit/react';
-import { CheckboxButton } from '@librechat/client';
 import { FolderKanban, ChevronDown } from 'lucide-react';
 import { useBadgeRowContext } from '~/Providers';
 import { useWorkspacesQuery } from '~/data-provider';
@@ -16,7 +15,7 @@ function WorkspaceSelect() {
 
   // Fetch all workspaces
   const { data: workspacesData } = useWorkspacesQuery(1, 100);
-  const workspaces = workspacesData?.workspaces || [];
+  const workspaces = useMemo(() => workspacesData?.workspaces || [], [workspacesData]);
 
   // Find the currently selected workspace
   const selectedWorkspace = useMemo(
@@ -56,23 +55,45 @@ function WorkspaceSelect() {
 
   return (
     <div className="flex">
-      {/* TODO Don't use CheckboxButton, instead use a custom implementation that becomes non-interactable and without menu-indicator if locked, and only becomes purple if a workspace has been selected */}
-      <CheckboxButton
-        className={cn('max-w-fit', !isLocked && 'rounded-r-none border-r-0')}
-        checked={isWorkspaceSelected}
-        setValue={handleToggle}
-        label={selectedWorkspace?.name || localize('com_ui_select_workspace')}
-        // isCheckedClassName="border-purple-600/40 bg-purple-500/10 hover:bg-purple-700/10"
-        icon={<FolderKanban className="icon-md" />}
+      <button
+        type="button"
+        onClick={handleToggle}
         disabled={isLocked}
-      />
+        aria-label={selectedWorkspace?.name || localize('com_ui_select_workspace')}
+        className={cn(
+          'group relative inline-flex items-center justify-center gap-1.5',
+          'rounded-full border text-sm font-medium',
+          'size-9 p-2 transition-all md:w-full md:p-3',
+          'shadow-sm',
+          // Default state
+          !isWorkspaceSelected && 'border-border-medium bg-transparent hover:bg-surface-secondary',
+          // Selected state (purple)
+          isWorkspaceSelected && 'border-purple-600/40 bg-purple-500/10 hover:bg-purple-700/10',
+          // Locked state
+          isLocked && 'cursor-default opacity-75',
+          // Adjust border radius when menu button is shown
+          !isLocked && 'rounded-r-none border-r-0 hover:shadow-md',
+        )}
+      >
+        {/* Icon */}
+        <FolderKanban className="icon-md text-text-primary" />
+
+        {/* Label on larger screens */}
+        <span className="hidden truncate md:block">
+          {selectedWorkspace?.name || localize('com_ui_select_workspace')}
+        </span>
+      </button>
+
       {!isLocked && (
         <Ariakit.MenuProvider open={isPopoverOpen} setOpen={setIsPopoverOpen}>
           <Ariakit.MenuButton
             className={cn(
-              'w-7 rounded-l-none rounded-r-full border-b border-l-0 border-r border-t border-border-light md:w-6',
-              // 'border-purple-600/40 bg-purple-500/10 hover:bg-purple-700/10',
+              'w-7 rounded-l-none rounded-r-full border-b border-l-0 border-r border-t md:w-6',
               'transition-colors',
+              // Match the main button's state
+              !isWorkspaceSelected &&
+                'border-border-medium bg-transparent hover:bg-surface-secondary',
+              isWorkspaceSelected && 'border-purple-600/40 bg-purple-500/10 hover:bg-purple-700/10',
             )}
             onClick={(e) => e.stopPropagation()}
           >
