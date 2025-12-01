@@ -23,8 +23,19 @@ gcloud run deploy ${SERVICE_NAME} \
     --timeout=3600 \
     --session-affinity \
     --execution-environment=gen2 \
-    --set-env-vars="ALLOW_REGISTRATION=false,ALLOW_PASSWORD_RESET=false,ALLOW_EMAIL_LOGIN=true" \
-    --set-secrets="MONGO_URI=mongo-uri:latest,JWT_SECRET=jwt-secret:latest,JWT_REFRESH_SECRET=jwt-refresh-secret:latest"
+    --set-env-vars="ALLOW_REGISTRATION=false,\
+                    ALLOW_PASSWORD_RESET=false,\
+                    ALLOW_EMAIL_LOGIN=true,\
+                    OPENAI_API_KEY=user_provided,\
+                    ANTHROPIC_API_KEY=user_provided,\
+                    GOOGLE_KEY=user_provided,\
+                    OPENROUTER_KEY=user_provided,
+                    ASSISTANTS_API_KEY=user_provided" \
+    --set-secrets="MONGO_URI=mongo-uri:latest,\
+                    JWT_SECRET=jwt-secret:latest,\
+                    JWT_REFRESH_SECRET=jwt-refresh-secret:latest,\
+                    CREDS_KEY=creds-key:latest,\
+                    CREDS_IV=creds-iv:latest"
 
 URL=$(gcloud run services describe ${SERVICE_NAME} --region=${REGION} --format='value(status.url)')
 echo "✅ Deployed! URL: ${URL}"
