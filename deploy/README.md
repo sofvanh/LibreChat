@@ -27,7 +27,11 @@
 
 #### How to test image locally
 
-See local (private) README
+Create build with `docker build -t librechat-test .`
+
+Then run with `docker run -p 3080:3080 --env-file .env librechat-test`
+
+In .env file, `MONGO_URI` should point to prod database, `HOST` needs to be 0.0.0.0, and all required env vars (JWT, CRED) need to be set.
 
 #### How to create a new account
 
