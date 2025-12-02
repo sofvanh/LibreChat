@@ -27,3 +27,5 @@ export * from './aclEntry';
 export * from './group';
 /* Web */
 export * from './web';
+/* Workspace */
+export * from './workspace';

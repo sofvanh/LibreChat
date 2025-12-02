@@ -746,6 +746,8 @@ export const tConversationSchema = z.object({
   assistant_id: z.string().optional(),
   /* agents */
   agent_id: z.string().optional(),
+  /* workspaces */
+  workspace_id: z.string().optional(),
   /* AWS Bedrock */
   region: z.string().optional(),
   maxTokens: coerceNumber.optional(),
@@ -942,6 +944,7 @@ export const googleBaseSchema = tConversationSchema.pick({
   greeting: true,
   spec: true,
   maxContextTokens: true,
+  workspace_id: true,
 });
 
 export const googleSchema = googleBaseSchema
@@ -990,6 +993,7 @@ const gptPluginsBaseSchema = tConversationSchema.pick({
   greeting: true,
   spec: true,
   maxContextTokens: true,
+  workspace_id: true,
 });
 
 export const gptPluginsSchema = gptPluginsBaseSchema
@@ -1106,6 +1110,7 @@ const compactAssistantBaseSchema = tConversationSchema.pick({
   iconURL: true,
   greeting: true,
   spec: true,
+  workspace_id: true,
 });
 
 export const compactAssistantSchema = compactAssistantBaseSchema
@@ -1124,6 +1129,7 @@ export const agentsBaseSchema = tConversationSchema.pick({
   agent_id: true,
   instructions: true,
   promptPrefix: true,
+  workspace_id: true,
   iconURL: true,
   greeting: true,
   maxContextTokens: true,
@@ -1190,6 +1196,7 @@ export const openAIBaseSchema = tConversationSchema.pick({
   web_search: true,
   disableStreaming: true,
   fileTokenLimit: true,
+  workspace_id: true,
 });
 
 export const openAISchema = openAIBaseSchema
@@ -1237,6 +1244,7 @@ export const anthropicBaseSchema = tConversationSchema.pick({
   fileTokenLimit: true,
   stop: true,
   stream: true,
+  workspace_id: true,
 });
 
 export const anthropicSchema = anthropicBaseSchema
@@ -1304,6 +1312,7 @@ export const compactAgentsBaseSchema = tConversationSchema.pick({
   agent_id: true,
   instructions: true,
   additional_instructions: true,
+  workspace_id: true,
 });
 
 export const compactAgentsSchema = compactAgentsBaseSchema

@@ -6,6 +6,7 @@ import * as ag from './types/agents';
 import * as m from './types/mutations';
 import * as q from './types/queries';
 import * as f from './types/files';
+import * as w from './types/workspaces';
 import * as config from './config';
 import request from './request';
 import * as s from './schemas';
@@ -964,4 +965,43 @@ export function getGraphApiToken(params: q.GraphTokenParams): Promise<q.GraphTok
 
 export function getDomainServerBaseUrl(): string {
   return `${endpoints.apiBaseUrl()}/api`;
+}
+
+// Workspaces
+export function getWorkspaces(page = 1, limit = 20): Promise<w.TWorkspacesResponse> {
+  return request.get(endpoints.getWorkspaces(page, limit));
+}
+
+export function createWorkspace(data: w.TCreateWorkspaceRequest): Promise<w.TWorkspace> {
+  return request.post(endpoints.workspaces(), data);
+}
+
+export function getWorkspaceById(id: string): Promise<w.TWorkspace> {
+  return request.get(endpoints.getWorkspaceById(id));
+}
+
+export function updateWorkspace(
+  id: string,
+  data: w.TUpdateWorkspaceRequest,
+): Promise<w.TWorkspace> {
+  return request.patch(endpoints.getWorkspaceById(id), data);
+}
+
+export function getWorkspaceConversations(
+  id: string,
+  cursor?: string,
+  limit = 25,
+): Promise<w.TWorkspaceConversationsResponse> {
+  return request.get(endpoints.getWorkspaceConversations(id, cursor, limit));
+}
+
+export function getWorkspaceFiles(id: string): Promise<f.TFile[]> {
+  return request.get(endpoints.getWorkspaceFiles(id));
+}
+
+export function manageWorkspaceFiles(
+  id: string,
+  data: { action: 'add' | 'remove'; file_ids: string[] },
+): Promise<w.TWorkspace> {
+  return request.patch(endpoints.manageWorkspaceFiles(id), data);
 }

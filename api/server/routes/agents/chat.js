@@ -7,6 +7,7 @@ const {
   // validateModel,
   validateConvoAccess,
   buildEndpointOption,
+  injectWorkspaceFiles,
   canAccessAgentFromBody,
 } = require('~/server/middleware');
 const { initializeClient } = require('~/server/services/Endpoints/agents');
@@ -31,6 +32,7 @@ const checkAgentResourceAccess = canAccessAgentFromBody({
 router.use(checkAgentAccess);
 router.use(checkAgentResourceAccess);
 router.use(validateConvoAccess);
+router.use(injectWorkspaceFiles);
 router.use(buildEndpointOption);
 router.use(setHeaders);
 

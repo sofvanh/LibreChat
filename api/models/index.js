@@ -22,6 +22,13 @@ const {
 } = require('./Message');
 const { getConvoTitle, getConvo, saveConvo, deleteConvos } = require('./Conversation');
 const { getPreset, getPresets, savePreset, deletePresets } = require('./Preset');
+const {
+  createWorkspace,
+  getWorkspacesByUser,
+  getWorkspaceById,
+  updateWorkspace,
+  deleteWorkspace,
+} = require('./Workspace');
 const { File } = require('~/db/models');
 
 const seedDatabase = async () => {
@@ -59,6 +66,12 @@ module.exports = {
   getPresets,
   savePreset,
   deletePresets,
+
+  createWorkspace,
+  getWorkspacesByUser,
+  getWorkspaceById,
+  updateWorkspace,
+  deleteWorkspace,
 
   Files: File,
 };

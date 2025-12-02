@@ -34,6 +34,7 @@ export interface IConversation extends Document {
   imageDetail?: string;
   agent_id?: string;
   assistant_id?: string;
+  workspace_id?: string;
   instructions?: string;
   stop?: string[];
   isArchived?: boolean;

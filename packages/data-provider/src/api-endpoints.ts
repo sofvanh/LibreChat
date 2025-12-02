@@ -381,3 +381,13 @@ export const getEffectivePermissions = (resourceType: ResourceType, resourceId: 
 // SharePoint Graph API Token
 export const graphToken = (scopes: string) =>
   `${BASE_URL}/api/auth/graph-token?scopes=${encodeURIComponent(scopes)}`;
+
+// Workspaces
+export const workspaces = () => `${BASE_URL}/api/workspaces`;
+export const getWorkspaces = (page = 1, limit = 20) =>
+  `${workspaces()}?page=${page}&limit=${limit}`;
+export const getWorkspaceById = (id: string) => `${workspaces()}/${id}`;
+export const getWorkspaceConversations = (id: string, cursor?: string, limit = 25) =>
+  `${workspaces()}/${id}/conversations${cursor ? `?cursor=${cursor}&limit=${limit}` : `?limit=${limit}`}`;
+export const getWorkspaceFiles = (id: string) => `${workspaces()}/${id}/files`;
+export const manageWorkspaceFiles = (id: string) => `${workspaces()}/${id}/files`;
