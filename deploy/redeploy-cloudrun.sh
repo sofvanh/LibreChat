@@ -8,6 +8,7 @@ IMAGE="${REGION}-docker.pkg.dev/${PROJECT_ID}/librechat-repo/${SERVICE_NAME}:lat
 
 echo "🚀 Redeploying existing build to Cloud Run..."
 gcloud run deploy ${SERVICE_NAME} \
+    --project=${PROJECT_ID} \
     --image=${IMAGE} \
     --region=${REGION} \
     --platform=managed \
@@ -27,6 +28,6 @@ gcloud run deploy ${SERVICE_NAME} \
                     CREDS_KEY=creds-key:latest,\
                     CREDS_IV=creds-iv:latest"
 
-URL=$(gcloud run services describe ${SERVICE_NAME} --region=${REGION} --format='value(status.url)')
+URL=$(gcloud run services describe ${SERVICE_NAME} --project=${PROJECT_ID} --region=${REGION} --format='value(status.url)')
 echo "✅ Redeployed! URL: ${URL}"
 

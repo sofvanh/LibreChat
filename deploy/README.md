@@ -14,10 +14,12 @@
 ##### Updating env vars or secrets only
 
 ` gcloud run services update librechat \
+    --project=librechat-479911 \
     --region=us-central1 \
     --update-env-vars="KEY1=value,KEY2=value"`
 
 ` gcloud run services update librechat \
+    --project=librechat-479911 \
     --region=us-central1 \
     --update-secrets="KEY1=name:latest,KEY2=name:latest"`
 
