@@ -150,7 +150,7 @@ claude-flow.config.json
 .swarm/
 .hive-mind/
 .claude-flow/
-memory/
+/memory/
 coordination/
 memory/claude-flow-data.json
 memory/sessions/*
