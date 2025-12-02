@@ -6,10 +6,7 @@ REGION="us-central1"
 SERVICE_NAME="librechat"
 IMAGE="${REGION}-docker.pkg.dev/${PROJECT_ID}/librechat-repo/${SERVICE_NAME}:latest"
 
-echo "🔨 Building with Cloud Build..."
-gcloud builds submit --tag ${IMAGE}
-
-echo "🚀 Deploying to Cloud Run..."
+echo "🚀 Redeploying existing build to Cloud Run..."
 gcloud run deploy ${SERVICE_NAME} \
     --image=${IMAGE} \
     --region=${REGION} \
@@ -31,4 +28,5 @@ gcloud run deploy ${SERVICE_NAME} \
                     CREDS_IV=creds-iv:latest"
 
 URL=$(gcloud run services describe ${SERVICE_NAME} --region=${REGION} --format='value(status.url)')
-echo "✅ Deployed! URL: ${URL}"
+echo "✅ Redeployed! URL: ${URL}"
+

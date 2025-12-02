@@ -1,0 +1,8 @@
+ALLOW_REGISTRATION: 'false'
+ALLOW_PASSWORD_RESET: 'false'
+ALLOW_EMAIL_LOGIN: 'true'
+ENDPOINTS: 'openAI,google,anthropic,custom,agents'
+OPENAI_API_KEY: 'user_provided'
+ANTHROPIC_API_KEY: 'user_provided'
+GOOGLE_KEY: 'user_provided'
+OPENROUTER_KEY: 'user_provided'
