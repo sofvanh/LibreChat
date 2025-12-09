@@ -36,6 +36,7 @@ export const fullMimeTypesList = [
   'text/x-java',
   'application/json',
   'text/markdown',
+  'text/x-markdown',
   'application/pdf',
   'text/x-php',
   'application/vnd.openxmlformats-officedocument.presentationml.presentation',
@@ -91,6 +92,7 @@ export const codeInterpreterMimeTypesList = [
   'text/x-java',
   'application/json',
   'text/markdown',
+  'text/x-markdown',
   'application/pdf',
   'text/x-php',
   'application/vnd.openxmlformats-officedocument.presentationml.presentation',
@@ -121,6 +123,7 @@ export const retrievalMimeTypesList = [
   'text/x-java',
   'application/json',
   'text/markdown',
+  'text/x-markdown',
   'application/pdf',
   'text/x-php',
   'application/vnd.openxmlformats-officedocument.presentationml.presentation',
@@ -137,7 +140,7 @@ export const excelMimeTypes =
   /^application\/(vnd\.ms-excel|msexcel|x-msexcel|x-ms-excel|x-excel|x-dos_ms_excel|xls|x-xls|vnd\.openxmlformats-officedocument\.spreadsheetml\.sheet)$/;
 
 export const textMimeTypes =
-  /^(text\/(x-c|x-csharp|tab-separated-values|x-c\+\+|x-h|x-java|html|markdown|x-php|x-python|x-script\.python|x-ruby|x-tex|plain|css|vtt|javascript|csv|xml))$/;
+  /^(text\/(x-c|x-csharp|tab-separated-values|x-c\+\+|x-h|x-java|html|x-markdown|markdown|x-php|x-python|x-script\.python|x-ruby|x-tex|plain|css|vtt|javascript|csv|xml))$/;
 
 export const applicationMimeTypes =
   /^(application\/(epub\+zip|csv|json|pdf|x-tar|typescript|vnd\.openxmlformats-officedocument\.(wordprocessingml\.document|presentationml\.presentation|spreadsheetml\.sheet)|xml|zip))$/;
@@ -201,7 +204,7 @@ export const codeTypeMapping: { [key: string]: string } = {
 };
 
 export const retrievalMimeTypes = [
-  /^(text\/(x-c|x-c\+\+|x-h|html|x-java|markdown|x-php|x-python|x-script\.python|x-ruby|x-tex|plain|vtt|xml))$/,
+  /^(text\/(x-c|x-c\+\+|x-h|html|x-java|x-markdown|markdown|x-php|x-python|x-script\.python|x-ruby|x-tex|plain|vtt|xml))$/,
   /^(application\/(json|pdf|vnd\.openxmlformats-officedocument\.(wordprocessingml\.document|presentationml\.presentation)))$/,
 ];
 

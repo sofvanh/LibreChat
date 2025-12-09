@@ -1,7 +1,8 @@
-import { useCallback, useState, useRef } from 'react';
+import { useCallback, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useOutletContext } from 'react-router-dom';
 import { ArrowLeft, Loader2, FileText, Save, X } from 'lucide-react';
+import { EToolResources } from 'librechat-data-provider';
 import { Button, Spinner, useMediaQuery, useToastContext, Textarea } from '@librechat/client';
 import {
   useWorkspaceQuery,
@@ -34,7 +35,6 @@ function WorkspaceDetail() {
   const [isEditingInstructions, setIsEditingInstructions] = useState(false);
   const [instructionsValue, setInstructionsValue] = useState('');
   const [uploadingFile, setUploadingFile] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Mutations
   const updateWorkspaceMutation = useUpdateWorkspaceMutation();
@@ -87,14 +87,9 @@ function WorkspaceDetail() {
     [navigate],
   );
 
-  const handleAddFiles = useCallback(() => {
-    fileInputRef.current?.click();
-  }, []);
-
-  const handleFileChange = useCallback(
-    async (event: React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
-      if (!file || !id) {
+  const handleFileUpload = useCallback(
+    async (file: File, toolResource?: EToolResources) => {
+      if (!id) {
         return;
       }
 
@@ -105,8 +100,16 @@ function WorkspaceDetail() {
         const formData = new FormData();
         formData.append('file', file);
         formData.append('file_id', crypto.randomUUID());
-        formData.append('endpoint', 'agents'); // Use agents endpoint for proper image handling
-        formData.append('message_file', 'true'); // Mark as message attachment, not tool resource
+        formData.append('endpoint', 'agents');
+
+        // Always mark as message_file (not tied to a specific agent)
+        formData.append('message_file', 'true');
+
+        // If toolResource is set (e.g., 'context' for text files), include it
+        // This triggers text extraction for markdown and other text files
+        if (toolResource) {
+          formData.append('tool_resource', toolResource);
+        }
 
         const uploadedFile = await uploadFileMutation.mutateAsync(formData);
 
@@ -129,9 +132,6 @@ function WorkspaceDetail() {
         });
       } finally {
         setUploadingFile(false);
-        if (fileInputRef.current) {
-          fileInputRef.current.value = '';
-        }
       }
     },
     [id, uploadFileMutation, manageFilesMutation, showToast, localize],
@@ -290,15 +290,9 @@ function WorkspaceDetail() {
 
           {/* Workspace Files Section */}
           <div className="mb-8">
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              style={{ display: 'none' }}
-            />
             <WorkspaceFiles
               files={workspaceFiles}
-              onAddFiles={handleAddFiles}
+              onFileUpload={handleFileUpload}
               onRemoveFile={handleRemoveFile}
               isLoading={filesLoading || uploadingFile}
             />
