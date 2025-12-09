@@ -1,72 +1,62 @@
-import { useCallback, useMemo, useEffect } from 'react';
-import { useRecoilState } from 'recoil';
-import { Constants, LocalStorageKeys } from 'librechat-data-provider';
-import { setTimestamp } from '~/utils/timestamps';
-import { ephemeralAgentByConvoId } from '~/store';
+import { useCallback } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Constants, QueryKeys, dataService } from 'librechat-data-provider';
+import type { TConversation } from 'librechat-data-provider';
 import { useChatContext } from '~/Providers';
-
-const WORKSPACE_KEY = '__workspace_id__';
 
 interface UseWorkspaceSelectionOptions {
   conversationId?: string | null;
 }
 
 export function useWorkspaceSelection({ conversationId }: UseWorkspaceSelectionOptions) {
-  const key = conversationId ?? Constants.NEW_CONVO;
-  const [ephemeralAgent, setEphemeralAgent] = useRecoilState(ephemeralAgentByConvoId(key));
+  const queryClient = useQueryClient();
   const { conversation, setConversation } = useChatContext();
 
-  const storageKey = useMemo(() => `${LocalStorageKeys.LAST_WORKSPACE_SELECTION_}${key}`, [key]);
+  const selectedWorkspaceId = conversation?.workspace_id ?? null;
 
-  // Get current workspace ID from ephemeralAgent or conversation
-  const selectedWorkspaceId = useMemo(() => {
-    const ephemeralWorkspaceId = ephemeralAgent?.[WORKSPACE_KEY];
-    const conversationWorkspaceId = conversation?.workspace_id;
-    return ephemeralWorkspaceId || conversationWorkspaceId || null;
-  }, [ephemeralAgent, conversation?.workspace_id]);
-
-  // Check if workspace selection is locked (conversation has messages)
-  const isLocked = useMemo(() => {
-    if (!conversation || (conversation.messages && conversation.messages.length > 0)) {
-      return true;
-    }
-    return false;
-  }, [conversation]);
-
-  // Sync to localStorage when ephemeralAgent changes
-  useEffect(() => {
-    const value = ephemeralAgent?.[WORKSPACE_KEY];
-    if (value !== undefined) {
-      localStorage.setItem(storageKey, JSON.stringify(value));
-      setTimestamp(storageKey);
-    }
-  }, [ephemeralAgent, storageKey]);
+  // Mutation to persist workspace change for existing conversations
+  const updateWorkspaceMutation = useMutation({
+    mutationFn: (payload: { conversationId: string; workspace_id: string | null }) =>
+      // Type assertion needed: backend accepts workspace_id but TS types are restrictive
+      dataService.updateConversation(
+        payload as unknown as Parameters<typeof dataService.updateConversation>[0],
+      ),
+    onSuccess: (_data, variables) => {
+      // Update the conversation in cache
+      queryClient.setQueryData<TConversation | undefined>(
+        [QueryKeys.conversation, variables.conversationId],
+        (old) => (old ? { ...old, workspace_id: variables.workspace_id ?? undefined } : old),
+      );
+    },
+  });
 
   const handleWorkspaceSelect = useCallback(
     (workspaceId: string | null) => {
-      if (isLocked) {
-        console.warn('Cannot change workspace after conversation has started');
-        return;
+      // Update local state immediately
+      setConversation((prev) => {
+        if (!prev) {
+          return prev;
+        }
+        return {
+          ...prev,
+          workspace_id: workspaceId ?? undefined,
+        };
+      });
+
+      // Persist to backend if this is an existing conversation
+      const convoId = conversationId ?? conversation?.conversationId;
+      if (convoId && convoId !== Constants.NEW_CONVO) {
+        updateWorkspaceMutation.mutate({
+          conversationId: convoId,
+          workspace_id: workspaceId,
+        });
       }
-
-      // Update ephemeralAgent
-      setEphemeralAgent((prev) => ({
-        ...(prev || {}),
-        [WORKSPACE_KEY]: workspaceId,
-      }));
-
-      // Update conversation
-      setConversation((prev) => ({
-        ...prev,
-        workspace_id: workspaceId ?? undefined,
-      }));
     },
-    [isLocked, setEphemeralAgent, setConversation],
+    [setConversation, conversationId, conversation?.conversationId, updateWorkspaceMutation],
   );
 
   return {
     selectedWorkspaceId,
     handleWorkspaceSelect,
-    isLocked,
   };
 }
