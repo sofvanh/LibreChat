@@ -1,17 +1,29 @@
-import { Plus, FileText, Trash2, Loader2 } from 'lucide-react';
-import { Button, Spinner } from '@librechat/client';
+import { useRef, useState } from 'react';
+import * as Ariakit from '@ariakit/react';
+import { Plus, FileText, Trash2, Loader2, FileImageIcon, FileType2Icon } from 'lucide-react';
+import { EToolResources } from 'librechat-data-provider';
+import { Button, Spinner, DropdownPopup } from '@librechat/client';
 import { useLocalize } from '~/hooks';
 import type { TFile } from 'librechat-data-provider';
+import type { MenuItemProps } from '~/common';
 
 interface WorkspaceFilesProps {
   files?: TFile[];
-  onAddFiles?: () => void;
+  onFileUpload?: (file: File, toolResource?: EToolResources) => Promise<void>;
   onRemoveFile?: (fileId: string) => void;
   isLoading?: boolean;
 }
 
-function WorkspaceFiles({ files = [], onAddFiles, onRemoveFile, isLoading }: WorkspaceFilesProps) {
+function WorkspaceFiles({
+  files = [],
+  onFileUpload,
+  onRemoveFile,
+  isLoading,
+}: WorkspaceFilesProps) {
   const localize = useLocalize();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [selectedToolResource, setSelectedToolResource] = useState<EToolResources | undefined>();
 
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) {
@@ -23,6 +35,54 @@ function WorkspaceFiles({ files = [], onAddFiles, onRemoveFile, isLoading }: Wor
     }
   };
 
+  const handleUploadClick = (toolResource?: EToolResources) => {
+    setSelectedToolResource(toolResource);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+      // For "Upload to Provider", only accept images and PDFs
+      // For "Upload as Text", accept all files
+      if (toolResource === undefined) {
+        fileInputRef.current.accept = 'image/*,.pdf,application/pdf';
+      } else {
+        fileInputRef.current.accept = '';
+      }
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file && onFileUpload) {
+      await onFileUpload(file, selectedToolResource);
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const dropdownItems: MenuItemProps[] = [
+    {
+      label: localize('com_ui_upload_provider'),
+      onClick: () => handleUploadClick(undefined),
+      icon: <FileImageIcon className="icon-md" />,
+    },
+    {
+      label: localize('com_ui_upload_ocr_text'),
+      onClick: () => handleUploadClick(EToolResources.context),
+      icon: <FileType2Icon className="icon-md" />,
+    },
+  ];
+
+  const menuTrigger = (
+    <Ariakit.MenuButton
+      disabled={isLoading}
+      className="flex items-center gap-2 rounded-md border border-border-medium bg-surface-primary px-3 py-1.5 text-sm font-medium text-text-primary transition-colors hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-50"
+    >
+      {isLoading ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
+      <span>{localize('com_ui_add_files')}</span>
+    </Ariakit.MenuButton>
+  );
+
   return (
     <div className="mx-auto max-w-3xl">
       <div className="rounded-xl border border-border-light bg-surface-secondary p-6">
@@ -33,16 +93,19 @@ function WorkspaceFiles({ files = [], onAddFiles, onRemoveFile, isLoading }: Wor
               {localize('com_ui_workspace_files')}
             </h2>
           </div>
-          <Button
-            onClick={onAddFiles}
-            variant="outline"
-            size="sm"
-            className="flex items-center gap-2"
-            disabled={isLoading}
-          >
-            {isLoading ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
-            <span>{localize('com_ui_add_files')}</span>
-          </Button>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            style={{ display: 'none' }}
+          />
+          <DropdownPopup
+            menuId="workspace-file-upload-menu"
+            isOpen={isMenuOpen}
+            setIsOpen={setIsMenuOpen}
+            trigger={menuTrigger}
+            items={dropdownItems}
+          />
         </div>
 
         <p className="mb-4 text-sm text-text-secondary">
