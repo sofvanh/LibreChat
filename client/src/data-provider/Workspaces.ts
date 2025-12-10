@@ -157,3 +157,15 @@ export const useManageWorkspaceFilesMutation = (): UseMutationResult<
     },
   );
 };
+
+export const useDeleteWorkspaceMutation = (): UseMutationResult<void, Error, string> => {
+  const queryClient = useQueryClient();
+  return useMutation((id: string) => dataService.deleteWorkspace(id), {
+    onSuccess: (_data, id) => {
+      // Remove the individual workspace query
+      queryClient.removeQueries([QueryKeys.workspaces, id]);
+      // Invalidate the workspaces list
+      queryClient.invalidateQueries([QueryKeys.workspaces]);
+    },
+  });
+};

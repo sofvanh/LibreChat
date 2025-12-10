@@ -5,6 +5,7 @@ const {
   listWorkspacesHandler,
   getWorkspaceHandler,
   updateWorkspaceHandler,
+  deleteWorkspaceHandler,
   getWorkspaceConversationsHandler,
   getWorkspaceFilesHandler,
   getWorkspaceContextHandler,
@@ -47,6 +48,14 @@ router.get('/:id', getWorkspaceHandler);
  * @returns {Object} 200 - Updated workspace
  */
 router.patch('/:id', updateWorkspaceHandler);
+
+/**
+ * Deletes a workspace by ID.
+ * @route DELETE /workspaces/:id
+ * @param {string} req.params.id - Workspace ID
+ * @returns {Object} 200 - Success message
+ */
+router.delete('/:id', deleteWorkspaceHandler);
 
 /**
  * Gets conversations for a workspace.

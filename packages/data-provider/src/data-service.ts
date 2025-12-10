@@ -987,6 +987,10 @@ export function updateWorkspace(
   return request.patch(endpoints.getWorkspaceById(id), data);
 }
 
+export function deleteWorkspace(id: string): Promise<void> {
+  return request.delete(endpoints.getWorkspaceById(id));
+}
+
 export function getWorkspaceConversations(
   id: string,
   cursor?: string,

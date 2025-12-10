@@ -4,6 +4,7 @@ const {
   getWorkspacesByUser,
   getWorkspaceById,
   updateWorkspace,
+  deleteWorkspace,
 } = require('~/models/Workspace');
 const { Conversation } = require('~/db/models');
 
@@ -379,11 +380,35 @@ const manageWorkspaceFilesHandler = async (req, res) => {
   }
 };
 
+/**
+ * Deletes a workspace.
+ * @route DELETE /api/workspaces/:id
+ * @param {string} req.params.id - Workspace ID
+ * @returns {Object} 200 - Success message
+ */
+const deleteWorkspaceHandler = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const deletedWorkspace = await deleteWorkspace(id, req.user.id);
+
+    if (!deletedWorkspace) {
+      return res.status(404).json({ error: 'Workspace not found' });
+    }
+
+    return res.status(200).json({ message: 'Workspace deleted successfully' });
+  } catch (error) {
+    logger.error('[deleteWorkspaceHandler] Error:', error);
+    return res.status(500).json({ error: 'Failed to delete workspace' });
+  }
+};
+
 module.exports = {
   createWorkspaceHandler,
   listWorkspacesHandler,
   getWorkspaceHandler,
   updateWorkspaceHandler,
+  deleteWorkspaceHandler,
   getWorkspaceConversationsHandler,
   getWorkspaceFilesHandler,
   getWorkspaceContextHandler,
