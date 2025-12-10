@@ -12,6 +12,7 @@ interface WorkspaceFilesProps {
   onFileUpload?: (file: File, toolResource?: EToolResources) => Promise<void>;
   onRemoveFile?: (fileId: string) => void;
   isLoading?: boolean;
+  fileTokens?: Record<string, number>;
 }
 
 function WorkspaceFiles({
@@ -19,6 +20,7 @@ function WorkspaceFiles({
   onFileUpload,
   onRemoveFile,
   isLoading,
+  fileTokens = {},
 }: WorkspaceFilesProps) {
   const localize = useLocalize();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -131,7 +133,16 @@ function WorkspaceFiles({
                     <p className="truncate text-sm font-medium text-text-primary">
                       {file.filename}
                     </p>
-                    <p className="text-xs text-text-secondary">{formatFileSize(file.bytes)}</p>
+                    <p className="text-xs text-text-secondary">
+                      {formatFileSize(file.bytes)}
+                      {fileTokens[file.file_id] != null && (
+                        <span className="ml-4">
+                          {localize('com_ui_context_tokens', {
+                            0: fileTokens[file.file_id].toLocaleString(),
+                          })}
+                        </span>
+                      )}
+                    </p>
                   </div>
                 </div>
                 {onRemoveFile && (

@@ -46,3 +46,15 @@ export interface TWorkspaceConversationsResponse {
   conversations: TWorkspaceConversation[];
   nextCursor: string | null;
 }
+
+export interface TWorkspaceContext {
+  tokenCount: number;
+  breakdown: {
+    instructions: number;
+    files: number;
+  };
+  /** Token estimates per file, keyed by file_id */
+  fileTokens: Record<string, number>;
+  /** Total bytes of files that couldn't be estimated */
+  unknownBytes: number;
+}

@@ -1005,3 +1005,7 @@ export function manageWorkspaceFiles(
 ): Promise<w.TWorkspace> {
   return request.patch(endpoints.manageWorkspaceFiles(id), data);
 }
+
+export function getWorkspaceContext(id: string): Promise<w.TWorkspaceContext> {
+  return request.get(endpoints.getWorkspaceContext(id));
+}

@@ -9,6 +9,7 @@ import type {
   TFile,
   TWorkspace,
   TWorkspacesResponse,
+  TWorkspaceContext,
   TCreateWorkspaceRequest,
   TUpdateWorkspaceRequest,
   TWorkspaceConversationsResponse,
@@ -61,6 +62,8 @@ export const useUpdateWorkspaceMutation = (): UseMutationResult<
         );
         // Invalidate the workspaces list to refresh
         queryClient.invalidateQueries([QueryKeys.workspaces]);
+        // Invalidate context query (instructions may have changed)
+        queryClient.invalidateQueries([QueryKeys.workspaces, updatedWorkspace._id, 'context']);
       },
     },
   );
@@ -112,6 +115,22 @@ export const useWorkspaceFilesQuery = (
   );
 };
 
+export const useWorkspaceContextQuery = (
+  id: string,
+  config?: UseQueryOptions<TWorkspaceContext>,
+): QueryObserverResult<TWorkspaceContext> => {
+  return useQuery<TWorkspaceContext>(
+    [QueryKeys.workspaces, id, 'context'],
+    () => dataService.getWorkspaceContext(id),
+    {
+      refetchOnWindowFocus: false,
+      staleTime: 3600000, // 1 hour
+      enabled: !!id,
+      ...config,
+    },
+  );
+};
+
 export const useManageWorkspaceFilesMutation = (): UseMutationResult<
   TWorkspace,
   Error,
@@ -130,6 +149,8 @@ export const useManageWorkspaceFilesMutation = (): UseMutationResult<
         );
         // Invalidate workspace files query
         queryClient.invalidateQueries([QueryKeys.workspaces, updatedWorkspace._id, 'files']);
+        // Invalidate context query (files changed)
+        queryClient.invalidateQueries([QueryKeys.workspaces, updatedWorkspace._id, 'context']);
         // Invalidate the workspaces list
         queryClient.invalidateQueries([QueryKeys.workspaces]);
       },

@@ -7,6 +7,7 @@ const {
   updateWorkspaceHandler,
   getWorkspaceConversationsHandler,
   getWorkspaceFilesHandler,
+  getWorkspaceContextHandler,
   manageWorkspaceFilesHandler,
 } = require('~/server/controllers/WorkspaceController');
 
@@ -62,6 +63,14 @@ router.get('/:id/conversations', getWorkspaceConversationsHandler);
  * @returns {Object} 200 - Files list
  */
 router.get('/:id/files', getWorkspaceFilesHandler);
+
+/**
+ * Gets token count for workspace context (instructions + files).
+ * @route GET /workspaces/:id/context
+ * @param {string} req.params.id - Workspace ID
+ * @returns {Object} 200 - Token count and breakdown
+ */
+router.get('/:id/context', getWorkspaceContextHandler);
 
 /**
  * Manages files for a workspace (add or remove).
