@@ -250,6 +250,77 @@ const getWorkspaceFilesHandler = async (req, res) => {
  * @param {string[]} req.body.file_ids - Array of file IDs
  * @returns {Object} 200 - Updated workspace
  */
+/**
+ * Gets the token count for workspace context (instructions + files).
+ * @route GET /api/workspaces/:id/context
+ * @param {string} req.params.id - Workspace ID
+ * @returns {Object} 200 - Token count with per-file breakdown
+ */
+const getWorkspaceContextHandler = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { getFiles } = require('~/models/File');
+    const countTokens = require('~/server/utils/countTokens');
+
+    // Verify workspace ownership
+    const workspace = await getWorkspaceById(id, req.user.id);
+    if (!workspace) {
+      return res.status(404).json({ error: 'Workspace not found' });
+    }
+
+    let instructionsTokens = 0;
+    let filesTokens = 0;
+    let unknownBytes = 0;
+    const fileTokens = {};
+
+    // Count tokens for instructions
+    if (workspace.instructions) {
+      instructionsTokens = await countTokens(workspace.instructions);
+    }
+
+    // Count tokens for files
+    if (workspace.files && workspace.files.length > 0) {
+      // Fetch files WITH text field (pass null to include text, which is excluded by default)
+      const files = await getFiles({ file_id: { $in: workspace.files } }, null, null);
+
+      for (const file of files) {
+        let tokens = 0;
+
+        if (file.text) {
+          // Text files: count actual tokens
+          tokens = await countTokens(file.text);
+        } else if (file.type && file.type.startsWith('image/') && file.width && file.height) {
+          // Images: estimate using min((width * height) / 750, 1600)
+          tokens = Math.min(Math.ceil((file.width * file.height) / 750), 1600);
+        } else {
+          // Unknown: track bytes
+          unknownBytes += file.bytes || 0;
+        }
+
+        if (tokens > 0) {
+          fileTokens[file.file_id] = tokens;
+          filesTokens += tokens;
+        }
+      }
+    }
+
+    const totalTokens = instructionsTokens + filesTokens;
+
+    return res.status(200).json({
+      tokenCount: totalTokens,
+      breakdown: {
+        instructions: instructionsTokens,
+        files: filesTokens,
+      },
+      fileTokens,
+      unknownBytes,
+    });
+  } catch (error) {
+    logger.error('[getWorkspaceContextHandler] Error:', error);
+    return res.status(500).json({ error: 'Failed to get workspace context' });
+  }
+};
+
 const manageWorkspaceFilesHandler = async (req, res) => {
   try {
     const { id } = req.params;
@@ -315,5 +386,6 @@ module.exports = {
   updateWorkspaceHandler,
   getWorkspaceConversationsHandler,
   getWorkspaceFilesHandler,
+  getWorkspaceContextHandler,
   manageWorkspaceFilesHandler,
 };

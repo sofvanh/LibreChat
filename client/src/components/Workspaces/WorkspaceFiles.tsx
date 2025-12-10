@@ -3,6 +3,8 @@ import * as Ariakit from '@ariakit/react';
 import { Plus, FileText, Trash2, Loader2, FileImageIcon, FileType2Icon } from 'lucide-react';
 import { EToolResources } from 'librechat-data-provider';
 import { Button, Spinner, DropdownPopup } from '@librechat/client';
+import FilePreview from '~/components/Chat/Input/Files/FilePreview';
+import { getFileType, formatBytes } from '~/utils/files';
 import { useLocalize } from '~/hooks';
 import type { TFile } from 'librechat-data-provider';
 import type { MenuItemProps } from '~/common';
@@ -12,6 +14,7 @@ interface WorkspaceFilesProps {
   onFileUpload?: (file: File, toolResource?: EToolResources) => Promise<void>;
   onRemoveFile?: (fileId: string) => void;
   isLoading?: boolean;
+  fileTokens?: Record<string, number>;
 }
 
 function WorkspaceFiles({
@@ -19,6 +22,7 @@ function WorkspaceFiles({
   onFileUpload,
   onRemoveFile,
   isLoading,
+  fileTokens = {},
 }: WorkspaceFilesProps) {
   const localize = useLocalize();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -26,13 +30,13 @@ function WorkspaceFiles({
   const [selectedToolResource, setSelectedToolResource] = useState<EToolResources | undefined>();
 
   const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) {
-      return `${bytes} B`;
-    } else if (bytes < 1024 * 1024) {
-      return `${(bytes / 1024).toFixed(1)} KB`;
-    } else {
-      return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    if (bytes === 0) {
+      return '0 B';
     }
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return `${formatBytes(bytes)} ${sizes[i]}`;
   };
 
   const handleUploadClick = (toolResource?: EToolResources) => {
@@ -126,12 +130,31 @@ function WorkspaceFiles({
                 className="flex items-center justify-between rounded-lg border border-border-light bg-surface-primary p-3"
               >
                 <div className="flex flex-1 items-center gap-3 overflow-hidden">
-                  <FileText className="size-4 flex-shrink-0 text-text-secondary" />
+                  {file.type?.startsWith('image/') && file.filepath ? (
+                    <div className="size-10 flex-shrink-0 overflow-hidden rounded-lg">
+                      <img
+                        src={file.filepath}
+                        alt={file.filename}
+                        className="size-full object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <FilePreview file={file} fileType={getFileType(file.type)} />
+                  )}
                   <div className="flex-1 overflow-hidden">
                     <p className="truncate text-sm font-medium text-text-primary">
                       {file.filename}
                     </p>
-                    <p className="text-xs text-text-secondary">{formatFileSize(file.bytes)}</p>
+                    <p className="text-xs text-text-secondary">
+                      {formatFileSize(file.bytes)}
+                      {fileTokens[file.file_id] != null && (
+                        <span className="ml-4">
+                          {localize('com_ui_context_tokens', {
+                            0: fileTokens[file.file_id].toLocaleString(),
+                          })}
+                        </span>
+                      )}
+                    </p>
                   </div>
                 </div>
                 {onRemoveFile && (

@@ -1073,6 +1073,7 @@
   "com_ui_workspace_files_description": "Files added here will be available to all conversations in this workspace.",
   "com_ui_add_files": "Add Files",
   "com_ui_no_files_workspace": "No files added yet",
+  "com_ui_context_tokens": "{{0}} tokens",
   "com_ui_error_loading_workspaces": "Failed to load workspaces",
   "com_ui_no_workspaces": "No workspaces yet",
   "com_ui_create_first_workspace": "Create your first workspace",

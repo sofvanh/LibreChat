@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useOutletContext } from 'react-router-dom';
-import { ArrowLeft, Loader2, FileText, Save, X } from 'lucide-react';
+import { ArrowLeft, Loader2, FileText, Save, X, Database } from 'lucide-react';
 import { EToolResources } from 'librechat-data-provider';
 import { Button, Spinner, useMediaQuery, useToastContext, Textarea } from '@librechat/client';
 import {
@@ -9,6 +9,7 @@ import {
   useWorkspaceConversationsQuery,
   useUpdateWorkspaceMutation,
   useWorkspaceFilesQuery,
+  useWorkspaceContextQuery,
   useManageWorkspaceFilesMutation,
   useUploadFileMutation,
 } from '~/data-provider';
@@ -17,6 +18,17 @@ import type { ContextType } from '~/common';
 import { OpenSidebar } from '~/components/Chat/Menus';
 import { formatRelativeDate } from '~/utils/dates';
 import WorkspaceFiles from './WorkspaceFiles';
+import { formatBytes } from '~/utils/files';
+
+const formatFileSize = (bytes: number) => {
+  if (bytes === 0) {
+    return '0 B';
+  }
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${formatBytes(bytes)} ${sizes[i]}`;
+};
 
 function WorkspaceDetail() {
   const { id } = useParams<{ id: string }>();
@@ -30,6 +42,7 @@ function WorkspaceDetail() {
   const { data: conversationsData, isLoading: conversationsLoading } =
     useWorkspaceConversationsQuery(id ?? '');
   const { data: workspaceFiles = [], isLoading: filesLoading } = useWorkspaceFilesQuery(id ?? '');
+  const { data: workspaceContext } = useWorkspaceContextQuery(id ?? '');
 
   // State for editing instructions
   const [isEditingInstructions, setIsEditingInstructions] = useState(false);
@@ -208,6 +221,22 @@ function WorkspaceDetail() {
               )}
             </div>
           </div>
+          {workspaceContext && (
+            <div className="flex items-center gap-2 text-sm text-text-secondary">
+              <Database className="size-4" />
+              <span>
+                {localize('com_ui_context_tokens', {
+                  0: workspaceContext.tokenCount.toLocaleString(),
+                })}
+                {workspaceContext.unknownBytes > 0 && ' + '}
+                {workspaceContext.unknownBytes > 0 && (
+                  <span className="text-text-tertiary">
+                    {formatFileSize(workspaceContext.unknownBytes)}
+                  </span>
+                )}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Content */}
@@ -295,6 +324,7 @@ function WorkspaceDetail() {
               onFileUpload={handleFileUpload}
               onRemoveFile={handleRemoveFile}
               isLoading={filesLoading || uploadingFile}
+              fileTokens={workspaceContext?.fileTokens}
             />
           </div>
 
