@@ -83,6 +83,7 @@ export default function Workspaces() {
               {data.workspaces.map((workspace) => (
                 <WorkspaceCard
                   key={workspace._id}
+                  id={workspace._id}
                   title={workspace.name}
                   description={workspace.description || ''}
                   updatedAt={formatRelativeDate(workspace.updatedAt, localize)}
