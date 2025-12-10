@@ -18,15 +18,16 @@ import type { ContextType } from '~/common';
 import { OpenSidebar } from '~/components/Chat/Menus';
 import { formatRelativeDate } from '~/utils/dates';
 import WorkspaceFiles from './WorkspaceFiles';
+import { formatBytes } from '~/utils/files';
 
 const formatFileSize = (bytes: number) => {
-  if (bytes < 1024) {
-    return `${bytes} B`;
-  } else if (bytes < 1024 * 1024) {
-    return `${(bytes / 1024).toFixed(1)} KB`;
-  } else {
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  if (bytes === 0) {
+    return '0 B';
   }
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${formatBytes(bytes)} ${sizes[i]}`;
 };
 
 function WorkspaceDetail() {
@@ -227,10 +228,10 @@ function WorkspaceDetail() {
                 {localize('com_ui_context_tokens', {
                   0: workspaceContext.tokenCount.toLocaleString(),
                 })}
-                {workspaceContext.unknownBytes > 0 && ' '}
+                {workspaceContext.unknownBytes > 0 && ' + '}
                 {workspaceContext.unknownBytes > 0 && (
                   <span className="text-text-tertiary">
-                    +{formatFileSize(workspaceContext.unknownBytes)}
+                    {formatFileSize(workspaceContext.unknownBytes)}
                   </span>
                 )}
               </span>
